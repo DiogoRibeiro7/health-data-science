@@ -1,8 +1,46 @@
-#setwd("C:/Users/brs380/OneDrive - Harvard University/NCDB/Data")
-setwd("/Users/brianajoy/OneDrive\ -\ Harvard\ University/NCDB/Data")
+#!/usr/bin/env Rscript
 
-library(sas7bdat)
-early.puf<-read.sas7bdat("puf_early.sas7bdat")
+args <- commandArgs(trailingOnly = FALSE)
+script_path <- sub("^--file=", "", args[grep("^--file=", args)])
+script_dir <- dirname(normalizePath(script_path))
+source(file.path(script_dir, "utils.R"))
+project_root <- dirname(script_dir)
+
+set.seed(123)
+
+packages <- c(
+  "optparse",
+  "sas7bdat", "reshape2", "plyr", "dplyr", "poLCA",
+  "ggplot2", "ggparallel", "igraph", "tidyr", "knitr"
+)
+ensure_packages(packages)
+
+default_input <- file.path(project_root, "data", "puf_early.sas7bdat")
+default_output <- file.path(project_root, "data", "lca_earlypuf.RData")
+
+option_list <- list(
+  optparse::make_option(
+    c("-i", "--input"),
+    default = default_input,
+    help = "Path to input NCDB data"
+  ),
+  optparse::make_option(
+    c("-o", "--output"),
+    default = default_output,
+    help = "File path to save latent class analysis results"
+  )
+)
+opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
+
+data_path <- opts$input
+output_path <- opts$output
+
+message("Reading data from: ", data_path)
+message("Saving results to: ", output_path)
+
+ensure_dir(output_path)
+require_data_file(data_path)
+early.puf <- sas7bdat::read.sas7bdat(data_path)
 
   ## LCA FACTOR LEVELS: race, urban dwelling, hispanic, insurance, age, sES ##
 #Race - 3 levels
@@ -25,16 +63,6 @@ early.puf$SES <- factor(early.puf$SES,levels=c(1:3),labels=c("Low SES","Med SES"
 
 
 ## Set up for LCA ##
-
-library(reshape2)
-library(plyr)
-library(dplyr)
-library(poLCA)
-library(ggplot2)
-library(ggparallel)
-library(igraph)
-library(tidyr)
-library(knitr)
 early.puf$facility<-factor(early.puf$FACILITY_TYPE_CD,levels=c(1:4,9),labels=c("Community Cancer","Comprehensive Cancer","Academic/Research","Integrated Network","Other"))
 
 
@@ -143,8 +171,9 @@ crow.aov <- aov(CROWFLY~class7,data=lca.pufdata)
 summary(crow.aov)
 
 
-crow.mean<-aggregate(lca.pufdata$CROWFLY, list(lc=class7), na.rm=TRUE, mean)
-crow.sd<-aggregate(lca.pufdata$CROWFLY, list(lc=class7), na.rm=TRUE, sd)
+crow.mean <- aggregate(lca.pufdata$CROWFLY, list(lc = class7), na.rm = TRUE, mean)
+crow.sd <- aggregate(lca.pufdata$CROWFLY, list(lc = class7), na.rm = TRUE, sd)
 
-save(lc7,lca.pufdata,file="lca_earlypuf.RData")
+# Save results for downstream analysis
+save(lc7, lca.pufdata, file = output_path)
 

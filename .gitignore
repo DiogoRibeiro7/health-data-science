@@ -1,0 +1,19 @@
+# R history and session data
+.Rhistory
+.RData
+.Ruserdata
+
+# RStudio files
+.Rproj.user/
+*.Rproj
+
+# Generated data
+*.RData
+*.sas7bdat
+
+# Other
+.DS_Store
+
+# renv
+renv/library/
+renv/staging/

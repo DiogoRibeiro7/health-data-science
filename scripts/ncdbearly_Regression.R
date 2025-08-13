@@ -1,22 +1,32 @@
-setwd("/Users/brianajoy/OneDrive\ -\ Harvard\ University/NCDB/Data")
+#!/usr/bin/env Rscript
 
-###########################
-## load library packages ##
-###########################
+args <- commandArgs(trailingOnly = FALSE)
+script_path <- sub("^--file=", "", args[grep("^--file=", args)])
+script_dir <- dirname(normalizePath(script_path))
+source(file.path(script_dir, "utils.R"))
+project_root <- dirname(script_dir)
 
-library(aod)
+packages <- c(
+  "optparse",
+  "aod", "survival", "survminer", "ranger", "ggfortify", "tidyverse"
+)
+ensure_packages(packages)
 
-library(survival)
-library(survminer)
+default_input <- file.path(project_root, "data", "lca_earlypuf.RData")
 
-library(ranger)
-library(ggplot2)
-library(dplyr)
-library(ggfortify)
-library(tidyverse)
+option_list <- list(
+  optparse::make_option(
+    c("-i", "--input"),
+    default = default_input,
+    help = "Path to latent class results RData file"
+  )
+)
+opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
 
-#LOAD NCDB EARLY STAGE DATA
-load('lca_earlypuf.Rdata')
+data_path <- opts$input
+message("Loading LCA results from: ", data_path)
+require_data_file(data_path)
+load(data_path)
 
 ## Define largest class 4 as the referent group ##
 lca.pufdata$LCAprofile <-factor(lca.pufdata$class7)
