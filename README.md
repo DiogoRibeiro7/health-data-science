@@ -28,6 +28,11 @@ R -q -e 'renv::restore()'
 ```
 
 A helper script is available at `scripts/install_system_deps.sh` to install these tools and libraries.
+For a one-step setup that verifies your R version and restores packages, run:
+
+```bash
+bash scripts/setup.sh
+```
 
 
 ## Getting Started
@@ -52,6 +57,8 @@ pre-commit install
 ```bash
 Rscript scripts/generate_sample_data.R
 ```
+
+For a condensed walkthrough, see the [Quickstart Guide](docs/quickstart.md). A step-by-step tutorial lives in `docs/tutorials/`.
 
 ## Usage
 1. Ensure `data/puf_early.csv` is present. A small synthetic sample is provided and can be regenerated with `scripts/generate_sample_data.R`. Replace it with the official NCDB PUF file for real analyses.

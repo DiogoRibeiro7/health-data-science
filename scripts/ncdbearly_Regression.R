@@ -17,6 +17,12 @@ project_root <- dirname(script_dir)
 source(file.path(project_root, "R", "utils.R"))
 source(file.path(project_root, "R", "regression.R"))
 
+# Verify R version for compatibility
+tryCatch(check_r_version("4.0.0"), error = function(e) {
+  message(e$message)
+  quit(status = 1)
+})
+
 # Ensure optparse is available for parsing
 tryCatch(ensure_packages("optparse"), error = function(e) {
   message("Package setup failed: ", e$message)

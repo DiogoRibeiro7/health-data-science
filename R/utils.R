@@ -43,6 +43,28 @@ ensure_packages <- function(packages) {
   invisible(TRUE)
 }
 
+#' Check that the running R version meets a minimum requirement
+#'
+#' Provides a clear message when the installed R version is older than the
+#' required version.
+#'
+#' @param required Minimum acceptable version as a character string.
+#'
+#' @return Invisible `TRUE` when the requirement is satisfied.
+#'
+#' @examples
+#' check_r_version("4.0.0")
+check_r_version <- function(required = "4.0.0") {
+  current <- getRversion()
+  if (current < required) {
+    stop(sprintf(
+      "R %s or higher is required; current version is %s. Please update R and re-run the script.",
+      required, current
+    ), call. = FALSE)
+  }
+  invisible(TRUE)
+}
+
 #' Ensure directory exists for a target file
 #'
 #' Creates the parent directory of the supplied path if it does not
