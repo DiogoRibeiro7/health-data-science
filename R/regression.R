@@ -1,3 +1,10 @@
+# ------------------------------------------------------------------------------
+# File: regression.R
+# Purpose: Logistic regression helpers for analyzing latent class profiles.
+# Author: Diogo Ribeiro (ESMAD - Instituto Politécnico do Porto)
+# Last Modified: 2025-03-??
+# ------------------------------------------------------------------------------
+
 # Helper and modeling functions for regression analyses
 
 load_lca_results <- function(data_path) {
@@ -25,15 +32,21 @@ load_lca_results <- function(data_path) {
 }
 
 fit_min_treatment_model <- function(df) {
-  glm(mintreat ~ LCAprofile + ANALYTIC_STAGE_GROUP + facility +
-        CDCC_TOTAL_BEST + FACILITY_LOCATION_CD + YEAR_OF_DIAGNOSIS,
-      data = df, family = "binomial")
+  # Logistic regression estimating odds of receiving minimal treatment
+  glm(
+    mintreat ~ LCAprofile + ANALYTIC_STAGE_GROUP + facility +
+      CDCC_TOTAL_BEST + FACILITY_LOCATION_CD + YEAR_OF_DIAGNOSIS,
+    data = df, family = "binomial"
+  )
 }
 
 fit_optimal_care_model <- function(df) {
-  glm(optcare ~ LCAprofile + ANALYTIC_STAGE_GROUP + facility +
-        CDCC_TOTAL_BEST + FACILITY_LOCATION_CD + YEAR_OF_DIAGNOSIS,
-      data = df, family = "binomial")
+  # Logistic regression estimating probability of optimal care
+  glm(
+    optcare ~ LCAprofile + ANALYTIC_STAGE_GROUP + facility +
+      CDCC_TOTAL_BEST + FACILITY_LOCATION_CD + YEAR_OF_DIAGNOSIS,
+    data = df, family = "binomial"
+  )
 }
 
 run_regression <- function(data_path) {

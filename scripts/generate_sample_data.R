@@ -1,4 +1,13 @@
 #!/usr/bin/env Rscript
+# ------------------------------------------------------------------------------
+# Script: generate_sample_data.R
+# Purpose: Create a synthetic NCDB-like dataset for examples and testing.
+# Inputs: None; generates data deterministically.
+# Outputs: CSV file at data/puf_early.csv.
+# Usage:  Rscript scripts/generate_sample_data.R
+# Author: Diogo Ribeiro (ESMAD - Instituto Politécnico do Porto)
+# Last Modified: 2025-03-??
+# ------------------------------------------------------------------------------
 args <- commandArgs(trailingOnly = FALSE)
 script_path <- sub("^--file=", "", args[grep("^--file=", args)])
 script_dir <- dirname(normalizePath(script_path))

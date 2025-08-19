@@ -1,4 +1,15 @@
 #!/usr/bin/env Rscript
+# ------------------------------------------------------------------------------
+# Script: ncdb_LCA.R
+# Purpose: Execute latent class analysis on NCDB sample data and save the
+#   fitted model along with class assignments.
+# Inputs: --input  Path to NCDB CSV file (default data/puf_early.csv)
+#         --output Path to write RData results (default data/lca_earlypuf.RData)
+# Outputs: RData file containing `lc7` model and `lca.pufdata` data frame.
+# Usage:  Rscript scripts/ncdb_LCA.R --input data/puf_early.csv --output data/lca_earlypuf.RData
+# Author: Diogo Ribeiro (ESMAD - Instituto Politécnico do Porto)
+# Last Modified: 2025-03-??
+# ------------------------------------------------------------------------------
 
 args <- commandArgs(trailingOnly = FALSE)
 script_path <- sub("^--file=", "", args[grep("^--file=", args)])

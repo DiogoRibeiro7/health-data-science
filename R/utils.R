@@ -1,3 +1,12 @@
+# ------------------------------------------------------------------------------
+# File: utils.R
+# Purpose: Shared helper functions for package installation, directory
+#   management, data validation, and safe file reading used across analysis
+#   scripts.
+# Author: Diogo Ribeiro (ESMAD - Instituto Politécnico do Porto)
+# Last Modified: 2025-03-??
+# ------------------------------------------------------------------------------
+
 #' Ensure required R packages are installed and loaded
 #'
 #' Attempts to install any packages that are not already available and
@@ -77,5 +86,33 @@ require_data_file <- function(path) {
          call. = FALSE)
   }
   invisible(TRUE)
+}
+
+#' Safely read a CSV file with informative errors
+#'
+#' Wraps `read.csv()` and checks for file existence before attempting to
+#' read. Failing to parse the file yields an actionable error message.
+#'
+#' @param path Path to the CSV file.
+#'
+#' @return A data frame containing the parsed contents of the file.
+#'
+#' @examples
+#' tmp <- tempfile(fileext = ".csv"); write.csv(mtcars, tmp)
+#' read_csv_safely(tmp)
+#' @export
+read_csv_safely <- function(path) {
+  if (!is.character(path) || length(path) != 1) {
+    stop("`path` must be a single character string", call. = FALSE)
+  }
+  require_data_file(path)
+  tryCatch(
+    read.csv(path),
+    error = function(e) {
+      stop("Failed to read input data '", path, "': ", e$message,
+           "\nEnsure the file is a valid CSV and accessible.",
+           call. = FALSE)
+    }
+  )
 }
 

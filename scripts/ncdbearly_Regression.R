@@ -1,4 +1,14 @@
 #!/usr/bin/env Rscript
+# ------------------------------------------------------------------------------
+# Script: ncdbearly_Regression.R
+# Purpose: Fit logistic regression models using latent class assignments from
+#   the LCA workflow.
+# Inputs: --input  Path to RData file produced by ncdb_LCA.R
+# Outputs: Printed model summaries for minimal treatment and optimal care.
+# Usage:  Rscript scripts/ncdbearly_Regression.R --input data/lca_earlypuf.RData
+# Author: Diogo Ribeiro (ESMAD - Instituto Politécnico do Porto)
+# Last Modified: 2025-03-??
+# ------------------------------------------------------------------------------
 
 args <- commandArgs(trailingOnly = FALSE)
 script_path <- sub("^--file=", "", args[grep("^--file=", args)])
