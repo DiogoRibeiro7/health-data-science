@@ -14,7 +14,13 @@ packages <- c(
   "reshape2", "plyr", "dplyr", "poLCA",
   "ggplot2", "ggparallel", "igraph", "tidyr", "knitr"
 )
-ensure_packages(packages)
+tryCatch(
+  ensure_packages(packages),
+  error = function(e) {
+    message("Package setup failed: ", e$message)
+    quit(status = 1)
+  }
+)
 
 default_input <- file.path(project_root, "data", "puf_early.csv")
 default_output <- file.path(project_root, "data", "lca_earlypuf.RData")
@@ -25,4 +31,10 @@ option_list <- list(
 )
 opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
 
-run_lca(opts$input, opts$output)
+tryCatch(
+  run_lca(opts$input, opts$output),
+  error = function(e) {
+    message("LCA workflow failed: ", e$message)
+    quit(status = 1)
+  }
+)

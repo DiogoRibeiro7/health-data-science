@@ -11,7 +11,13 @@ packages <- c(
   "optparse",
   "aod", "survival", "survminer", "ranger", "ggfortify", "ggplot2"
 )
-ensure_packages(packages)
+tryCatch(
+  ensure_packages(packages),
+  error = function(e) {
+    message("Package setup failed: ", e$message)
+    quit(status = 1)
+  }
+)
 
 default_input <- file.path(project_root, "data", "lca_earlypuf.RData")
 
@@ -20,4 +26,10 @@ option_list <- list(
 )
 opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
 
-run_regression(opts$input)
+tryCatch(
+  run_regression(opts$input),
+  error = function(e) {
+    message("Regression workflow failed: ", e$message)
+    quit(status = 1)
+  }
+)

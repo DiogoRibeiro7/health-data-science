@@ -18,11 +18,27 @@ prepare_lca_data <- function(df) {
 }
 
 run_lca <- function(data_path, output_path) {
+  if (!is.character(data_path) || length(data_path) != 1) {
+    stop("`data_path` must be a single character string", call. = FALSE)
+  }
+  if (!is.character(output_path) || length(output_path) != 1) {
+    stop("`output_path` must be a single character string", call. = FALSE)
+  }
+
   message("Reading data from: ", data_path)
   message("Saving results to: ", output_path)
   ensure_dir(output_path)
   require_data_file(data_path)
-  early.puf <- read.csv(data_path)
+
+  early.puf <- tryCatch(
+    read.csv(data_path),
+    error = function(e) {
+      stop("Failed to read input data '", data_path, "': ", e$message,
+           "\nEnsure the file is a valid CSV and accessible.",
+           call. = FALSE)
+    }
+  )
+
   early.puf <- prepare_lca_data(early.puf)
 
   lca.earlydata <- early.puf %>% dplyr::select(

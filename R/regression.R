@@ -1,9 +1,26 @@
 # Helper and modeling functions for regression analyses
 
 load_lca_results <- function(data_path) {
+  if (!is.character(data_path) || length(data_path) != 1) {
+    stop("`data_path` must be a single character string", call. = FALSE)
+  }
   message("Loading LCA results from: ", data_path)
   require_data_file(data_path)
-  load(data_path)
+  tryCatch(
+    {
+      load(data_path)
+    },
+    error = function(e) {
+      stop("Failed to load data from '", data_path, "': ", e$message,
+           "\nEnsure the file was created by the LCA workflow.",
+           call. = FALSE)
+    }
+  )
+  if (!exists("lca.pufdata")) {
+    stop("Object 'lca.pufdata' not found in ", data_path,
+         "\nVerify the input file is a valid LCA results file.",
+         call. = FALSE)
+  }
   lca.pufdata
 }
 
