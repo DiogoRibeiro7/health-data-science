@@ -1,13 +1,14 @@
-# NCDB_LCA
+# Health Data Science
 
-This repository contains scripts for reproducing analyses from the study
+This repository provides a health data science toolkit with reproducible workflows.
+It currently includes scripts for reproducing analyses from the study
 "Cluster identification of early-stage pancreas cancer patients at greatest risk for disparities of care" by Ugwuji N. Maduekwe,
 Briana J. K. Stephenson, Jen Jen Yeh, Melissa Troester and Hanna K. Sanoff.
 
 ## Repository structure
-- `scripts/ncdb_LCA.R` – performs latent class analysis on early-stage NCDB data and saves results to `data/lca_earlypuf.RData`.
-- `scripts/ncdbearly_Regression.R` – runs regression models using the latent class assignments.
-- `scripts/utils.R` – helper functions for package installation, directory creation, and data validation.
+- `scripts/ncdb_LCA.R` – example latent class analysis on early-stage NCDB data, saving results to `data/lca_earlypuf.RData`.
+- `scripts/ncdbearly_Regression.R` – example regression models using the latent class assignments.
+- `R/utils.R` – helper functions for package installation, directory creation, and data validation.
 - `data/` – contains example input data (`puf_early.csv`) and stores intermediate outputs. See `data/README.md`.
 
 ## Prerequisites
@@ -33,7 +34,7 @@ A helper script is available at `scripts/install_system_deps.sh` to install thes
 1. Clone the repository:
 ```bash
 git clone <repo-url>
-cd NCDB_LCA
+cd health-data-science
 ```
 2. Install system libraries:
 ```bash

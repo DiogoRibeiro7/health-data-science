@@ -1,5 +1,7 @@
 # Next Steps
 
+The tasks below will help broaden and harden this health data science toolkit.
+
 ## Provision Dependencies
 - Install any missing R system libraries (e.g., `libcurl4-openssl-dev`, `libssl-dev`, `libxml2-dev`) so package installs like `dplyr`, `aod`, `survminer`, and `reshape2` succeed.
 - Consider using an R dependency manager (`renv` or `packrat`) to lock versions and make setup reproducible.
