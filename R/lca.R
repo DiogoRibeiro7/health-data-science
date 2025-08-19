@@ -118,12 +118,18 @@ merge_lca_results <- function(df_full, df_subset, classes) {
 #'
 #' @param data_path Path to the input CSV file.
 #' @param output_path File path to save the fitted model and merged data.
+#' @param dry_run If `TRUE`, validate inputs and exit without running the
+#'   analysis.
+#' @param verbose Logical flag to print status messages.
+#' @param show_progress Display a progress bar for major steps when `TRUE`.
 #'
-#' @return Invisibly returns the fitted `poLCA` model.
+#' @return Invisibly returns the fitted `poLCA` model or `NULL` when
+#'   `dry_run` is enabled.
 #'
 #' @examples
 #' run_lca("data/puf_early.csv", "data/lca_earlypuf.RData")
-run_lca <- function(data_path, output_path) {
+run_lca <- function(data_path, output_path, dry_run = FALSE, verbose = TRUE,
+                    show_progress = TRUE) {
   if (!is.character(data_path) || length(data_path) != 1) {
     stop("`data_path` must be a single character string", call. = FALSE)
   }
@@ -131,22 +137,44 @@ run_lca <- function(data_path, output_path) {
     stop("`output_path` must be a single character string", call. = FALSE)
   }
 
-  message("Reading data from: ", data_path)
-  message("Saving results to: ", output_path)
+  require_data_file(data_path)
   ensure_dir(output_path)
 
-  # --- Read and prepare data ---
+  if (dry_run) {
+    if (verbose) {
+      message("Dry run: inputs validated. Results would be saved to ",
+              output_path)
+    }
+    return(invisible(NULL))
+  }
+
+  steps <- c("Reading data", "Selecting variables", "Fitting model",
+             "Merging results", "Saving output")
+  pb <- NULL
+  if (show_progress) {
+    pb <- progress::progress_bar$new(
+      total = length(steps),
+      format = "[:bar] :percent eta::eta :what"
+    )
+  }
+  tick <- function(msg) {
+    if (verbose) message(msg)
+    if (!is.null(pb)) pb$tick(tokens = list(what = msg))
+  }
+
+  tick(steps[1])
   early.puf <- read_lca_input(data_path)
+  tick(steps[2])
   lca.earlydata <- select_lca_variables(early.puf)
-
-  # --- Fit latent class model ---
+  tick(steps[3])
   lc7 <- fit_lca_model(early.puf, lca.earlydata)
-
-  # --- Summarize membership and merge with source data ---
+  tick(steps[4])
   class7 <- summarize_lca(lc7)
   lca.pufdata <- merge_lca_results(early.puf, lca.earlydata, class7)
-
+  tick(steps[5])
   save(lc7, lca.pufdata, file = output_path)
+
+  if (verbose) message("LCA analysis complete")
   invisible(lc7)
 }
 

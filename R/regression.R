@@ -7,12 +7,12 @@
 
 # Helper and modeling functions for regression analyses
 
-load_lca_results <- function(data_path) {
+load_lca_results <- function(data_path, verbose = TRUE) {
   if (!is.character(data_path) || length(data_path) != 1) {
     stop("`data_path` must be a single character string", call. = FALSE)
   }
-  message("Loading LCA results from: ", data_path)
   require_data_file(data_path)
+  if (verbose) message("Loading LCA results from: ", data_path)
   tryCatch(
     {
       load(data_path)
@@ -49,10 +49,34 @@ fit_optimal_care_model <- function(df) {
   )
 }
 
-run_regression <- function(data_path) {
-  df <- load_lca_results(data_path)
-  list(
-    mintreat = fit_min_treatment_model(df),
-    optcare = fit_optimal_care_model(df)
-  )
+run_regression <- function(data_path, dry_run = FALSE, verbose = TRUE,
+                           show_progress = TRUE) {
+  require_data_file(data_path)
+  if (dry_run) {
+    if (verbose) message("Dry run: inputs validated. Would load ", data_path)
+    return(invisible(list()))
+  }
+
+  steps <- c("Loading data", "Fitting minimal treatment model",
+             "Fitting optimal care model")
+  pb <- NULL
+  if (show_progress) {
+    pb <- progress::progress_bar$new(
+      total = length(steps),
+      format = "[:bar] :percent eta::eta :what"
+    )
+  }
+  tick <- function(msg) {
+    if (verbose) message(msg)
+    if (!is.null(pb)) pb$tick(tokens = list(what = msg))
+  }
+
+  tick(steps[1])
+  df <- load_lca_results(data_path, verbose = verbose)
+  tick(steps[2])
+  mintreat <- fit_min_treatment_model(df)
+  tick(steps[3])
+  optcare <- fit_optimal_care_model(df)
+  if (verbose) message("Regression analysis complete")
+  list(mintreat = mintreat, optcare = optcare)
 }

@@ -17,27 +17,52 @@ project_root <- dirname(script_dir)
 source(file.path(project_root, "R", "utils.R"))
 source(file.path(project_root, "R", "regression.R"))
 
-packages <- c(
-  "optparse",
-  "aod", "survival", "survminer", "ranger", "ggfortify", "ggplot2"
-)
-tryCatch(
-  ensure_packages(packages),
-  error = function(e) {
-    message("Package setup failed: ", e$message)
-    quit(status = 1)
-  }
-)
+# Ensure optparse is available for parsing
+tryCatch(ensure_packages("optparse"), error = function(e) {
+  message("Package setup failed: ", e$message)
+  quit(status = 1)
+})
 
+version <- get_project_version(project_root)
 default_input <- file.path(project_root, "data", "lca_earlypuf.RData")
 
 option_list <- list(
-  optparse::make_option(c("-i", "--input"), default = default_input, help = "Path to latent class results RData file")
+  optparse::make_option(c("-i", "--input"), default = default_input,
+    help = "Path to latent class results RData file [default %default]"),
+  optparse::make_option("--version", action = "store_true", default = FALSE,
+    help = "Print script version and exit"),
+  optparse::make_option("--dry-run", action = "store_true", default = FALSE,
+    help = "Validate arguments and required files, then exit"),
+  optparse::make_option(c("-q", "--quiet"), action = "store_true", default = FALSE,
+    help = "Suppress progress messages"),
+  optparse::make_option(c("-v", "--verbose"), action = "store_true", default = FALSE,
+    help = "Print additional status messages")
 )
-opts <- optparse::parse_args(optparse::OptionParser(option_list = option_list))
+parser <- optparse::OptionParser(option_list = option_list,
+  usage = "\n  Rscript scripts/ncdbearly_Regression.R [options]")
+opts <- optparse::parse_args(parser)
+
+if (opts$version) {
+  cat(sprintf("ncdbearly_Regression.R version %s\n", version))
+  quit(status = 0)
+}
+
+verbose <- TRUE
+if (opts$quiet) verbose <- FALSE
+if (opts$verbose) verbose <- TRUE
+
+if (!opts$dry_run) {
+  pkgs <- c("aod", "survival", "survminer", "ranger", "ggfortify",
+            "ggplot2", "progress")
+  tryCatch(ensure_packages(pkgs), error = function(e) {
+    message("Package setup failed: ", e$message)
+    quit(status = 1)
+  })
+}
 
 tryCatch(
-  run_regression(opts$input),
+  run_regression(opts$input, dry_run = opts$dry_run, verbose = verbose,
+                 show_progress = verbose && !opts$quiet),
   error = function(e) {
     message("Regression workflow failed: ", e$message)
     quit(status = 1)

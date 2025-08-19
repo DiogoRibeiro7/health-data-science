@@ -59,13 +59,16 @@ Rscript scripts/generate_sample_data.R
    ```bash
    Rscript scripts/ncdb_LCA.R --input data/puf_early.csv --output data/lca_earlypuf.RData
    ```
+   Use `--dry-run` to validate arguments without executing, `--quiet` to suppress
+   progress output, or `--version` to print the script version.
 3. Run the regression models (accepts `--input` to specify the LCA results):
    ```bash
    Rscript scripts/ncdbearly_Regression.R --input data/lca_earlypuf.RData
    ```
    These scripts determine the project root automatically, so the default
    paths work even when invoked from outside the repository using absolute
-   script locations.
+   script locations. Progress bars and verbose messages provide feedback during
+   lengthy operations.
 The scripts attempt to install any missing R packages automatically.
 Package installation is verified, the latent class analysis uses a fixed
 random seed for reproducible results, and output directories are created

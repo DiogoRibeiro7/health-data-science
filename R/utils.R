@@ -116,3 +116,22 @@ read_csv_safely <- function(path) {
   )
 }
 
+#' Retrieve project version from DESCRIPTION
+#'
+#' Reads the package version declared in the repository's DESCRIPTION file
+#' so scripts can expose a `--version` flag without duplicating metadata.
+#'
+#' @param root Path to the project root containing DESCRIPTION.
+#'
+#' @return Character string of the project version.
+#'
+#' @examples
+#' get_project_version()
+get_project_version <- function(root = getwd()) {
+  desc <- file.path(root, "DESCRIPTION")
+  if (!file.exists(desc)) {
+    stop("DESCRIPTION file not found at ", desc, call. = FALSE)
+  }
+  read.dcf(desc, fields = "Version")[1, 1]
+}
+
