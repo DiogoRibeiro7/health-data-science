@@ -1,0 +1,9 @@
+Package: NCDBLCA
+Title: NCDB Latent Class Analysis Tools
+Version: 0.1.0
+Authors@R:
+    person(given = "Diogo", family = "Ribeiro", email = "dfr@esmad.ipp.pt", role = c("aut", "cre"), comment = c(ORCID = "0009-0001-2022-7072"))
+Description: Utilities and analysis scripts for NCDB latent class analysis.
+License: MIT
+Encoding: UTF-8
+LazyData: true
