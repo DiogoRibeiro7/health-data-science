@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this project, please cite it as below."
+authors:
+  - family-names: Ribeiro
+    given-names: Diogo
+    orcid: https://orcid.org/0009-0001-2022-7072
+    email: dfr@esmad.ipp.pt
+    affiliation: ESMAD - Instituto Politécnico do Porto
+title: "Health Data Science"
+version: 0.1.0

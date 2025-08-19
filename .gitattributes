@@ -1,0 +1,5 @@
+* text=auto
+
+# Data files
+*.csv text eol=lf
+*.RData binary

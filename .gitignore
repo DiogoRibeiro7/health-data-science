@@ -17,3 +17,7 @@
 # renv
 renv/library/
 renv/staging/
+
+# Analysis outputs
+outputs/*
+!outputs/.gitkeep
