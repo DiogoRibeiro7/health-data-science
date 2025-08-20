@@ -24,7 +24,36 @@ Imports:
     digest,
     boot,
     tidyr,
-    poLCA
-    , shiny
-    , plumber
-    , httr
+    poLCA,
+    shiny,
+    plumber,
+    httr,
+    logger,
+    progress,
+    future,
+    future.apply,
+    Matrix,
+    pool,
+    arrow,
+    caret,
+    randomForest,
+    forecast,
+    survival,
+    MatchIt,
+    iml,
+    pdp,
+    lime,
+    openssl,
+    yaml,
+    uuid,
+    jsonlite,
+    prometheus,
+    opentelemetry
+Suggests:
+    testthat (>= 3.0.0),
+    roxygen2,
+    RPostgres,
+    RMariaDB,
+    odbc,
+    ROracle
+VignetteBuilder: knitr

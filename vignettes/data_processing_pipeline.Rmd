@@ -1,0 +1,52 @@
+---
+title: "Data Processing Pipeline"
+author: "Diogo Ribeiro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Processing Pipeline}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = '#>')
+library(healthdatascience)
+```
+
+This vignette illustrates how to apply the data transformation utilities to a
+sample dataset.
+
+## Create Mock Data
+
+```{r mock-data}
+set.seed(123)
+df <- data.frame(
+  mpg = c(mtcars$mpg, NA),
+  hp = c(mtcars$hp, 400),
+  gear = factor(c(mtcars$gear, 5))
+)
+```
+
+## Run Transformation Pipeline
+
+```{r pipeline}
+steps <- list(
+  impute_missing,
+  function(d) handle_outliers(d, c('mpg', 'hp'))
+)
+validators <- list(function(d) all(!is.na(d$mpg)))
+clean <- run_transform_pipeline(df, steps, validators)
+head(clean)
+```
+
+The pipeline imputes missing values, caps extreme outliers and validates that the
+`mpg` column contains no missing data after processing.
+
+## Record Data Version
+
+```{r version, eval=FALSE}
+record_data_version('processed.csv')
+```
+
+Refer to the [Performance Considerations](../docs/performance.md) document for
+optimisation tips when scaling these operations.

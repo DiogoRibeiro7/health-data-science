@@ -11,6 +11,14 @@ Briana J. K. Stephenson, Jen Jen Yeh, Melissa Troester and Hanna K. Sanoff.
 - `R/utils.R` – helper functions for package installation, directory creation, and data validation.
 - `R/data_processing.R` – data quality assessment, imputation, outlier handling, feature engineering, and ETL utilities.
 - `R/model_validation.R` – residual analysis, goodness-of-fit tests, bootstrap confidence intervals, cross-validation, and LCA diagnostics.
+- `R/database.R` – database connectivity helpers with connection pooling and streaming queries.
+- `R/etl.R` – incremental ETL pipelines and data lineage logging.
+- `R/storage.R` – Parquet and cloud storage utilities for scalable datasets.
+- `R/advanced_models.R` – ensemble, time-series, survival and causal modelling helpers.
+- `R/ml_features.R` – automated feature engineering and selection utilities.
+- `R/mlops.R` – model registry, validation and monitoring helpers.
+- `R/interpretability.R` – SHAP values, feature importance and partial dependence.
+- `R/deployment.R` – REST API scoring, batch prediction and deployment stubs.
 - `data/` – contains example input data (`puf_early.csv`) and stores intermediate outputs. See `data/README.md`.
 - `app/` – Shiny application for interactive analysis with file upload and download.
 - `api/` – Plumber REST API exposing latent class analysis endpoints.
@@ -64,6 +72,24 @@ Rscript scripts/generate_sample_data.R
 
 For a condensed walkthrough, see the [Quickstart Guide](docs/quickstart.md). A step-by-step tutorial lives in `docs/tutorials/`.
 
+## Documentation
+Detailed references are provided in the `docs/` directory:
+
+- [Data Requirements](docs/data_requirements.md)
+- [Statistical Methods](docs/statistical_methods.md)
+- [Performance Considerations](docs/performance.md)
+- [Troubleshooting Guide](docs/troubleshooting.md)
+- [Developer Guide](docs/developer_guide.md)
+- [Database Connectivity and ETL](docs/database_etl.md)
+- [Security and Compliance](docs/security_compliance.md)
+- [Monitoring and Observability](docs/observability.md)
+
+Package vignettes offer fully worked examples and can be viewed with:
+
+```r
+ browseVignettes('healthdatascience')
+```
+
 ## Usage
 1. Ensure `data/puf_early.csv` is present. A small synthetic sample is provided and can be regenerated with `scripts/generate_sample_data.R`. Replace it with the official NCDB PUF file for real analyses.
 2. Run the latent class analysis (override defaults with `--input` and `--output` if desired):
@@ -72,6 +98,8 @@ For a condensed walkthrough, see the [Quickstart Guide](docs/quickstart.md). A s
    ```
    Use `--dry-run` to validate arguments without executing, `--quiet` to suppress
    progress output, or `--version` to print the script version.
+   Parallel execution can be enabled by setting `parallel = TRUE` in the
+   configuration file to accelerate model fitting on multi-core machines.
 3. Run the regression models (accepts `--input` to specify the LCA results):
    ```bash
   Rscript scripts/ncdbearly_Regression.R --input data/lca_earlypuf.RData
@@ -101,10 +129,10 @@ Start the REST API to run analyses programmatically:
 ```bash
 Rscript scripts/run_api.R
 ```
-Endpoints are protected with basic authentication using the `API_USER` and
-`API_PASSWORD` environment variables. A health check is available at
-`/ping`, and a `/lca` endpoint accepts CSV uploads and returns model
-objects.
+Endpoints require an `X-API-Key` header. Keys and roles are managed with
+`verify_api_key()` and `rotate_api_key()` utilities. Liveness and readiness
+probes are exposed at `/health/live` and `/health/ready`, and an `/lca`
+endpoint accepts CSV uploads and returns model objects.
 
 ## Deployment
 
