@@ -1,0 +1,12 @@
+^\.github$
+^scripts$
+^tests$
+^data$
+^renv$
+^renv\.lock$
+^NEXT_STEPS\.md$
+^CODE_OF_CONDUCT\.md$
+^CONTRIBUTING\.md$
+^app$
+^api$
+^Dockerfile$

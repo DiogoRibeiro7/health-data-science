@@ -1,0 +1,4 @@
+lca:
+  nrep: 5
+regression:
+  confidence_level: 0.9

@@ -1,0 +1,5 @@
+lca:
+  nclass: 3
+  nrep: 2
+regression:
+  confidence_level: 0.8
