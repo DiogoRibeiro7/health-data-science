@@ -1,0 +1,21 @@
+---
+title: "Latent Class Analysis Report"
+output: html_document
+params:
+  input: "data/lca_results.RData"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Latent Class Analysis Summary
+
+```{r}
+load(params$input)
+if (exists("lca_results")) {
+  knitr::kable(head(lca_results))
+} else {
+  "LCA results not found in the supplied file."
+}
+```

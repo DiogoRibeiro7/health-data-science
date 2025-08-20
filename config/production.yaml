@@ -1,0 +1,6 @@
+lca:
+  nrep: 30
+regression:
+  confidence_level: 0.95
+survival:
+  confidence_level: 0.99

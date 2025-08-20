@@ -1,0 +1,21 @@
+---
+title: "Regression Analysis Report"
+output: html_document
+params:
+  input: "data/regression_results.RData"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Regression Model Summary
+
+```{r}
+load(params$input)
+if (exists("regression_results")) {
+  knitr::kable(summary(regression_results)$coefficients)
+} else {
+  "Regression results not found in the supplied file."
+}
+```

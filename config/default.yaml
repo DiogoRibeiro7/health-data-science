@@ -1,0 +1,13 @@
+lca:
+  nclass: 7
+  maxiter: 5000
+  tol: 1e-5
+  nrep: 20
+  verbose: true
+  auto_classes: false
+regression:
+  family: binomial
+  confidence_level: 0.95
+survival:
+  method: coxph
+  confidence_level: 0.95

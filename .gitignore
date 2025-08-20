@@ -1,0 +1,27 @@
+# R history and session data
+.Rhistory
+.RData
+.Ruserdata
+
+# RStudio files
+.Rproj.user/
+*.Rproj
+
+# Generated data
+*.RData
+*.sas7bdat
+data/version_log.csv
+
+# Backups
+*.tar.gz
+
+# Other
+.DS_Store
+
+# renv
+renv/library/
+renv/staging/
+
+# Analysis outputs
+outputs/*
+!outputs/.gitkeep
