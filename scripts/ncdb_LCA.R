@@ -41,6 +41,8 @@ option_list <- list(
     help = "Path to input NCDB CSV data [default %default]"),
   optparse::make_option(c("-o", "--output"), default = default_output,
     help = "File path to save latent class analysis results [default %default]"),
+  optparse::make_option("--config", default = "default",
+    help = "Configuration environment (default, development, production, testing) [default %default]"),
   optparse::make_option("--version", action = "store_true", default = FALSE,
     help = "Print script version and exit"),
   optparse::make_option("--dry-run", action = "store_true", default = FALSE,
@@ -63,6 +65,8 @@ verbose <- TRUE
 if (opts$quiet) verbose <- FALSE
 if (opts$verbose) verbose <- TRUE
 
+cfg <- load_config(opts$config, project_root)
+
 if (!opts$dry_run) {
   pkgs <- c("reshape2", "plyr", "dplyr", "poLCA",
             "ggplot2", "ggparallel", "igraph", "tidyr", "knitr", "progress")
@@ -73,7 +77,7 @@ if (!opts$dry_run) {
 }
 
 tryCatch(
-  run_lca(opts$input, opts$output, dry_run = opts$dry_run,
+  run_lca(opts$input, opts$output, cfg, dry_run = opts$dry_run,
           verbose = verbose, show_progress = verbose && !opts$quiet),
   error = function(e) {
     message("LCA workflow failed: ", e$message)

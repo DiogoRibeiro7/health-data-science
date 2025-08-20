@@ -31,25 +31,40 @@ load_lca_results <- function(data_path, verbose = TRUE) {
   lca.pufdata
 }
 
-fit_min_treatment_model <- function(df) {
+fit_min_treatment_model <- function(df, family = "binomial") {
   # Logistic regression estimating odds of receiving minimal treatment
   glm(
     mintreat ~ LCAprofile + ANALYTIC_STAGE_GROUP + facility +
       CDCC_TOTAL_BEST + FACILITY_LOCATION_CD + YEAR_OF_DIAGNOSIS,
-    data = df, family = "binomial"
+    data = df, family = family
   )
 }
 
-fit_optimal_care_model <- function(df) {
+fit_optimal_care_model <- function(df, family = "binomial") {
   # Logistic regression estimating probability of optimal care
   glm(
     optcare ~ LCAprofile + ANALYTIC_STAGE_GROUP + facility +
       CDCC_TOTAL_BEST + FACILITY_LOCATION_CD + YEAR_OF_DIAGNOSIS,
-    data = df, family = "binomial"
+    data = df, family = family
   )
 }
 
-run_regression <- function(data_path, dry_run = FALSE, verbose = TRUE,
+#' Run logistic regression analyses on latent class assignments
+#'
+#' @param data_path Path to the `.RData` file produced by the LCA workflow.
+#' @param config Configuration list (typically from `load_config()`).
+#' @param dry_run If `TRUE`, validate inputs and exit without running the models.
+#' @param verbose Logical flag to print status messages.
+#' @param show_progress Display a progress bar for major steps when `TRUE`.
+#'
+#' @return List containing fitted minimal treatment and optimal care models, or
+#'   an empty list when `dry_run` is `TRUE`.
+#' @export
+#'
+#' @examples
+#' cfg <- load_config()
+#' models <- run_regression("data/lca_earlypuf.RData", cfg)
+run_regression <- function(data_path, config, dry_run = FALSE, verbose = TRUE,
                            show_progress = TRUE) {
   require_data_file(data_path)
   if (dry_run) {
@@ -74,9 +89,9 @@ run_regression <- function(data_path, dry_run = FALSE, verbose = TRUE,
   tick(steps[1])
   df <- load_lca_results(data_path, verbose = verbose)
   tick(steps[2])
-  mintreat <- fit_min_treatment_model(df)
+  mintreat <- fit_min_treatment_model(df, family = config$regression$family)
   tick(steps[3])
-  optcare <- fit_optimal_care_model(df)
+  optcare <- fit_optimal_care_model(df, family = config$regression$family)
   if (verbose) message("Regression analysis complete")
   list(mintreat = mintreat, optcare = optcare)
 }

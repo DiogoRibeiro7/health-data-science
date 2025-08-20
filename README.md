@@ -81,6 +81,15 @@ Package installation is verified, the latent class analysis uses a fixed
 random seed for reproducible results, and output directories are created
 automatically when needed.
 
+## Configuration
+
+Default parameters for the analyses live in `config/default.yaml`. Environment-
+specific overrides (`development.yaml`, `production.yaml`, `testing.yaml`) can
+adjust settings such as the number of latent classes or regression family.
+Use the `--config` flag on command-line scripts to select the environment.
+Configuration files are validated for type and range correctness via
+`load_config()` before execution.
+
 ## License
 This project is licensed under the [MIT License](LICENSE).
 

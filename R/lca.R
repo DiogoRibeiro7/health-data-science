@@ -63,22 +63,34 @@ select_lca_variables <- function(df) {
 
 #' Fit latent class model
 #'
-#' The number of classes defaults to seven to mirror prior NCDB analyses and
-#' maintain a balance between model fit and interpretability. Higher numbers of
-#' classes produced unstable solutions in exploratory runs.
+#' Uses configuration parameters for model fitting. When `cfg$auto_classes` is
+#' `TRUE`, the optimal number of classes is determined using
+#' `optimal_lca_classes()`.
 #'
 #' @param df_full Prepared dataset with all variables.
 #' @param df_subset Subset returned by `select_lca_variables()`.
-#' @param nclass Number of latent classes to extract. Defaults to 7.
+#' @param cfg List of LCA configuration parameters.
 #'
 #' @return Fitted `poLCA` model object.
 #'
 #' @examples
-#' lca_model <- fit_lca_model(early, lca_vars)
-fit_lca_model <- function(df_full, df_subset, nclass = 7) {
+#' cfg <- load_config()
+#' lca_model <- fit_lca_model(early, lca_vars, cfg$lca)
+fit_lca_model <- function(df_full, df_subset, cfg) {
   eff <- with(df_subset, cbind(race3, hispanic3, urbandwell, age4, SES, insurancetype) ~ 1)
-  poLCA(eff, df_full, nclass = nclass, maxiter = 5000,
-        tol = 1e-5, na.rm = TRUE, nrep = 20, verbose = TRUE, calc.se = TRUE)
+  params <- cfg
+  if (isTRUE(cfg$auto_classes)) {
+    opt <- optimal_lca_classes(df_full, df_subset, k_range = 2:10)
+    params$nclass <- opt$best_k
+  }
+  poLCA(eff, df_full,
+        nclass = params$nclass,
+        maxiter = params$maxiter,
+        tol = params$tol,
+        na.rm = TRUE,
+        nrep = params$nrep,
+        verbose = params$verbose,
+        calc.se = TRUE)
 }
 
 #' Summarize latent class membership
@@ -118,6 +130,7 @@ merge_lca_results <- function(df_full, df_subset, classes) {
 #'
 #' @param data_path Path to the input CSV file.
 #' @param output_path File path to save the fitted model and merged data.
+#' @param config Configuration list (typically from `load_config()`).
 #' @param dry_run If `TRUE`, validate inputs and exit without running the
 #'   analysis.
 #' @param verbose Logical flag to print status messages.
@@ -128,8 +141,8 @@ merge_lca_results <- function(df_full, df_subset, classes) {
 #'
 #' @examples
 #' run_lca("data/puf_early.csv", "data/lca_earlypuf.RData")
-run_lca <- function(data_path, output_path, dry_run = FALSE, verbose = TRUE,
-                    show_progress = TRUE) {
+run_lca <- function(data_path, output_path, config, dry_run = FALSE,
+                    verbose = TRUE, show_progress = TRUE) {
   if (!is.character(data_path) || length(data_path) != 1) {
     stop("`data_path` must be a single character string", call. = FALSE)
   }
@@ -167,7 +180,7 @@ run_lca <- function(data_path, output_path, dry_run = FALSE, verbose = TRUE,
   tick(steps[2])
   lca.earlydata <- select_lca_variables(early.puf)
   tick(steps[3])
-  lc7 <- fit_lca_model(early.puf, lca.earlydata)
+  lc7 <- fit_lca_model(early.puf, lca.earlydata, config$lca)
   tick(steps[4])
   class7 <- summarize_lca(lc7)
   lca.pufdata <- merge_lca_results(early.puf, lca.earlydata, class7)

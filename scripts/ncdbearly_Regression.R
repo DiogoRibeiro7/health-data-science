@@ -35,6 +35,8 @@ default_input <- file.path(project_root, "data", "lca_earlypuf.RData")
 option_list <- list(
   optparse::make_option(c("-i", "--input"), default = default_input,
     help = "Path to latent class results RData file [default %default]"),
+  optparse::make_option("--config", default = "default",
+    help = "Configuration environment (default, development, production, testing) [default %default]"),
   optparse::make_option("--version", action = "store_true", default = FALSE,
     help = "Print script version and exit"),
   optparse::make_option("--dry-run", action = "store_true", default = FALSE,
@@ -57,6 +59,8 @@ verbose <- TRUE
 if (opts$quiet) verbose <- FALSE
 if (opts$verbose) verbose <- TRUE
 
+cfg <- load_config(opts$config, project_root)
+
 if (!opts$dry_run) {
   pkgs <- c("aod", "survival", "survminer", "ranger", "ggfortify",
             "ggplot2", "progress")
@@ -67,7 +71,7 @@ if (!opts$dry_run) {
 }
 
 tryCatch(
-  run_regression(opts$input, dry_run = opts$dry_run, verbose = verbose,
+  run_regression(opts$input, cfg, dry_run = opts$dry_run, verbose = verbose,
                  show_progress = verbose && !opts$quiet),
   error = function(e) {
     message("Regression workflow failed: ", e$message)
