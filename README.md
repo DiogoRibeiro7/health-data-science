@@ -126,6 +126,8 @@ Launch the Shiny application for interactive analysis:
 Rscript scripts/run_app.R
 ```
 
+The dashboard offers a responsive layout with dark or light themes, interactive plotly charts, real-time metrics, collaborative notes, and role-aware access controls for healthcare analysts.
+
 Start the REST API to run analyses programmatically:
 
 ```bash
