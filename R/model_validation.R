@@ -59,19 +59,34 @@ goodness_of_fit <- function(model, model_null = NULL) {
 #' @param model Fitted model.
 #' @param param Name of coefficient to bootstrap.
 #' @param R Number of bootstrap resamples.
+#' @param parallel Logical; perform resampling in parallel.
+#' @param progress Logical; display a progress bar.
 #' @return A numeric vector with lower and upper 95% confidence interval.
 #' @examples
 #' mod <- stats::lm(mpg ~ cyl, data = mtcars)
 #' bootstrap_ci(mod, "cyl", R = 100)
-bootstrap_ci <- function(model, param, R = 1000) {
+bootstrap_ci <- function(model, param, R = 1000, parallel = FALSE, progress = TRUE) {
   stopifnot(requireNamespace("boot", quietly = TRUE))
   coef_index <- which(names(stats::coef(model)) == param)
-  boot_fun <- function(data, idx) {
-    mod <- stats::update(model, data = data[idx, ])
+  boot_fun <- function(idx) {
+    mod <- stats::update(model, data = model$model[idx, ])
     stats::coef(mod)[coef_index]
   }
-  b <- boot::boot(model$model, boot_fun, R = R)
-  boot::boot.ci(b, type = "perc")$percent[4:5]
+  if (parallel) {
+    future::plan(future::multisession)
+    on.exit(future::plan(future::sequential), add = TRUE)
+    res <- future.apply::future_sapply(seq_len(R), function(i) {
+      boot_fun(sample(nrow(model$model), replace = TRUE))
+    }, future.seed = TRUE)
+  } else {
+    pb <- NULL
+    if (progress) pb <- progress::progress_bar$new(total = R)
+    res <- sapply(seq_len(R), function(i) {
+      if (progress) pb$tick()
+      boot_fun(sample(nrow(model$model), replace = TRUE))
+    })
+  }
+  stats::quantile(res, c(0.025, 0.975))
 }
 
 #' k-fold cross validation for arbitrary modelling functions
@@ -80,21 +95,34 @@ bootstrap_ci <- function(model, param, R = 1000) {
 #' @param k Number of folds.
 #' @param fit_fn Function that takes `train_data` and returns a model.
 #' @param pred_fn Function that takes a fitted model and `test_data` and returns predictions.
+#' @param parallel Logical; compute folds in parallel.
+#' @param progress Logical; display a progress bar.
 #' @return Vector of holdout errors.
 #' @examples
 #' kfold_cv(mtcars, k = 5,
 #'   fit_fn = function(d) stats::lm(mpg ~ cyl, data = d),
 #'   pred_fn = function(mod, d) stats::predict(mod, newdata = d))
-kfold_cv <- function(data, k = 5, fit_fn, pred_fn) {
+kfold_cv <- function(data, k = 5, fit_fn, pred_fn, parallel = FALSE, progress = TRUE) {
   n <- nrow(data)
   folds <- sample(rep(1:k, length.out = n))
-  errs <- numeric(k)
-  for (i in seq_len(k)) {
+  fold_fn <- function(i) {
     train <- data[folds != i, ]
     test  <- data[folds == i, ]
     mod <- fit_fn(train)
     preds <- pred_fn(mod, test)
-    errs[i] <- mean((test[[1]] - preds)^2)
+    mean((test[[1]] - preds)^2)
+  }
+  if (parallel) {
+    future::plan(future::multisession)
+    on.exit(future::plan(future::sequential), add = TRUE)
+    errs <- future.apply::future_sapply(seq_len(k), fold_fn, future.seed = TRUE)
+  } else {
+    pb <- NULL
+    if (progress) pb <- progress::progress_bar$new(total = k)
+    errs <- sapply(seq_len(k), function(i) {
+      if (progress) pb$tick()
+      fold_fn(i)
+    })
   }
   errs
 }

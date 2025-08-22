@@ -1,0 +1,51 @@
+---
+title: "Latent Class Analysis Workflow"
+author: "Diogo Ribeiro"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Latent Class Analysis Workflow}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = '#>')
+library(healthdatascience)
+```
+
+This vignette demonstrates an end-to-end latent class analysis (LCA) using the
+sample NCDB-style data included with the package.
+
+## Load Configuration and Data
+
+```{r load-data}
+cfg <- load_config()
+init_logging('INFO')
+data_path <- system.file('extdata', 'puf_early.csv', package = 'healthdatascience')
+```
+
+## Run the LCA Workflow
+
+```{r run-lca, eval=FALSE}
+run_lca(
+  data_path = data_path,
+  output_path = tempfile(fileext = '.RData'),
+  config = cfg,
+  verbose = TRUE,
+  show_progress = TRUE
+)
+```
+
+The workflow reads the CSV, selects variables, fits the latent class model and
+saves the fitted object. Progress messages and a progress bar provide feedback
+during execution.
+
+## Inspect Model Output
+
+```{r inspect-model, eval=FALSE}
+load('lca_results.RData')
+summary(lc7)
+```
+
+Refer to the [Statistical Methods](../docs/statistical_methods.md) document for
+assumptions underlying LCA.

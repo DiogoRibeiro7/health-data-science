@@ -1,0 +1,43 @@
+---
+title: "Publication-Ready Report"
+author: "Health Data Science Team"
+output:
+  pdf_document: default
+  html_document: default
+params:
+  data: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+if (!is.null(params$data)) {
+  df <- params$data
+}
+```
+
+## Overview
+
+This report summarizes statistical analyses performed on the provided dataset with publication-quality formatting.
+
+## Descriptive Statistics
+
+```{r}
+if (exists("df")) {
+  summary(df)
+} else {
+  "No data supplied"
+}
+```
+
+## Key Plot
+
+```{r, fig.width=6, fig.height=4}
+if (exists("df")) {
+  p <- ggplot2::ggplot(df, ggplot2::aes(x = df[[1]], y = df[[2]])) +
+    ggplot2::geom_point() +
+    theme_publication()
+  print(p)
+} else {
+  "No plot available"
+}
+```

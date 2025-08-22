@@ -14,16 +14,18 @@
 #' detailed quality assessment.
 #'
 #' @param data A data frame to assess.
+#' @param parallel Logical; compute summaries in parallel.
+#' @param progress Logical; display a progress bar.
 #'
 #' @return A tibble with one row per column and summary statistics.
 #' @examples
 #' assess_data_quality(mtcars)
-assess_data_quality <- function(data) {
+assess_data_quality <- function(data, parallel = FALSE, progress = TRUE) {
   if (!is.data.frame(data)) {
     stop("`data` must be a data frame", call. = FALSE)
   }
   cols <- names(data)
-  res <- lapply(cols, function(col) {
+  col_fn <- function(col) {
     x <- data[[col]]
     list(
       variable = col,
@@ -32,7 +34,22 @@ assess_data_quality <- function(data) {
       pct_missing = mean(is.na(x)),
       n_unique = length(unique(x))
     )
-  })
+  }
+  if (parallel) {
+    future::plan(future::multisession)
+    on.exit(future::plan(future::sequential), add = TRUE)
+    res <- future.apply::future_lapply(cols, col_fn)
+  } else {
+    pb <- NULL
+    if (progress) {
+      pb <- progress::progress_bar$new(total = length(cols))
+    }
+    res <- lapply(cols, function(col) {
+      out <- col_fn(col)
+      if (progress) pb$tick()
+      out
+    })
+  }
   dplyr::bind_rows(res)
 }
 
@@ -174,15 +191,30 @@ add_polynomial_features <- function(data, cols, degree = 2) {
 #' read_data_source("data/puf_early.csv", "csv")
 read_data_source <- function(path, source = c("csv", "excel", "sqlite"), table = NULL) {
   source <- match.arg(source)
-  if (source == "csv") {
-    readr::read_csv(path, show_col_types = FALSE)
-  } else if (source == "excel") {
-    readxl::read_excel(path)
-  } else {
-    con <- DBI::dbConnect(RSQLite::SQLite(), path)
-    on.exit(DBI::dbDisconnect(con), add = TRUE)
-    DBI::dbReadTable(con, table)
+  if (!is.character(path) || length(path) != 1) {
+    logger::log_error("`path` must be a single character string")
+    stop("`path` must be a single character string", call. = FALSE)
   }
+  logger::log_info(sprintf("Reading %s data from %s", source, path))
+  tryCatch({
+    if (source == "csv") {
+      readr::read_csv(path, show_col_types = FALSE)
+    } else if (source == "excel") {
+      readxl::read_excel(path)
+    } else {
+      if (is.null(table)) {
+        logger::log_error("`table` must be provided for sqlite sources")
+        stop("`table` must be provided for sqlite sources", call. = FALSE)
+      }
+      con <- DBI::dbConnect(RSQLite::SQLite(), path)
+      on.exit(DBI::dbDisconnect(con), add = TRUE)
+      DBI::dbReadTable(con, table)
+    }
+  }, error = function(e) {
+    logger::log_error(sprintf("Failed to read data source: %s", e$message))
+    stop("Failed to read data source: ", e$message,
+         "\nVerify the path and required parameters.", call. = FALSE)
+  })
 }
 
 #' Export data to various formats
@@ -196,14 +228,29 @@ read_data_source <- function(path, source = c("csv", "excel", "sqlite"), table =
 #' export_data(mtcars, "mtcars.csv", "csv")
 export_data <- function(data, path, format = c("csv", "rds", "excel")) {
   format <- match.arg(format)
-  ensure_dir(path)
-  if (format == "csv") {
-    readr::write_csv(data, path)
-  } else if (format == "rds") {
-    saveRDS(data, path)
-  } else {
-    writexl::write_xlsx(data, path)
+  if (!is.data.frame(data)) {
+    logger::log_error("`data` must be a data frame")
+    stop("`data` must be a data frame", call. = FALSE)
   }
+  if (!is.character(path) || length(path) != 1) {
+    logger::log_error("`path` must be a single character string")
+    stop("`path` must be a single character string", call. = FALSE)
+  }
+  ensure_dir(path)
+  logger::log_info(sprintf("Exporting data to %s (%s)", path, format))
+  tryCatch({
+    if (format == "csv") {
+      readr::write_csv(data, path)
+    } else if (format == "rds") {
+      saveRDS(data, path)
+    } else {
+      writexl::write_xlsx(data, path)
+    }
+  }, error = function(e) {
+    logger::log_error(sprintf("Failed to export data: %s", e$message))
+    stop("Failed to export data: ", e$message,
+         "\nCheck that the destination is writable.", call. = FALSE)
+  })
   invisible(TRUE)
 }
 
@@ -213,26 +260,34 @@ export_data <- function(data, path, format = c("csv", "rds", "excel")) {
 #' validator functions are run; if any validator returns `FALSE`, execution
 #' stops with an error.
 #'
-#' @param data Initial data frame.
-#' @param transformations List of functions transforming the data.
-#' @param validators List of functions returning `TRUE` when data is valid.
+#' @param data Initial data frame passed to the first transformation function.
+#' @param transformations Ordered list of unary functions. Each function must
+#'   accept and return a data frame; the output of one becomes the input to the
+#'   next.
+#' @param validators Optional list of predicate functions applied after each
+#'   transformation. Validators should return `TRUE` for valid data and may
+#'   throw informative errors otherwise.
 #'
-#' @return Transformed data frame.
+#' @return The transformed data frame produced by the final transformation.
 #' @examples
 #' steps <- list(function(d) d[complete.cases(d), ])
 #' run_transform_pipeline(mtcars, steps)
 run_transform_pipeline <- function(data, transformations, validators = NULL) {
   stopifnot(is.list(transformations))
+  step_num <- 1
   for (step in transformations) {
+    logger::log_info(sprintf("Running transformation step %d", step_num))
     data <- step(data)
     if (!is.null(validators)) {
       for (v in validators) {
         valid <- v(data)
         if (!isTRUE(valid)) {
+          logger::log_error(sprintf("Validation failed at step %d", step_num))
           stop("Data validation failed during transformation pipeline", call. = FALSE)
         }
       }
     }
+    step_num <- step_num + 1
   }
   data
 }

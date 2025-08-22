@@ -50,7 +50,7 @@ read_lca_input <- function(path, cache = TRUE) {
     cache_result(cache_file, {
       df <- read_csv_safely(path)
       prepare_lca_data(df)
-    })
+    }, depends = path, max_size_mb = 500)
   } else {
     df <- read_csv_safely(path)
     prepare_lca_data(df)
@@ -71,15 +71,19 @@ select_lca_variables <- function(df) {
 
 #' Fit latent class model
 #'
-#' Uses configuration parameters for model fitting. When `cfg$auto_classes` is
-#' `TRUE`, the optimal number of classes is determined using
-#' `optimal_lca_classes()`.
+#' Fits a [poLCA::poLCA] model using supplied configuration parameters. When
+#' `cfg$auto_classes` is `TRUE`, the optimal number of classes is determined
+#' via [`optimal_lca_classes()`] over the range `k_range` before fitting.
 #'
-#' @param df_full Prepared dataset with all variables.
-#' @param df_subset Subset returned by `select_lca_variables()`.
-#' @param cfg List of LCA configuration parameters.
+#' @param df_full Data frame containing the full set of variables required by
+#'   the latent class model.
+#' @param df_subset Data frame produced by [`select_lca_variables()`] containing
+#'   only the variables used in model estimation.
+#' @param cfg Named list of LCA configuration parameters including `nclass`,
+#'   `maxiter`, `tol`, `nrep`, `verbose`, and `parallel`. When `auto_classes`
+#'   is `TRUE`, these defaults are augmented with the optimal number of classes.
 #'
-#' @return Fitted `poLCA` model object.
+#' @return Fitted [`poLCA::poLCA`] model object.
 #'
 #' @examples
 #' cfg <- load_config()
@@ -91,14 +95,44 @@ fit_lca_model <- function(df_full, df_subset, cfg) {
     opt <- optimal_lca_classes(df_full, df_subset, k_range = 2:10)
     params$nclass <- opt$best_k
   }
-  poLCA(eff, df_full,
-        nclass = params$nclass,
-        maxiter = params$maxiter,
-        tol = params$tol,
-        na.rm = TRUE,
-        nrep = params$nrep,
-        verbose = params$verbose,
-        calc.se = TRUE)
+  logger::log_info(sprintf("Fitting LCA model with %d classes", params$nclass))
+  seeds <- seq_len(max(1, params$nrep))
+  fit_once <- function(seed) {
+    set.seed(seed)
+    poLCA(eff, df_full,
+          nclass = params$nclass,
+          maxiter = params$maxiter,
+          tol = params$tol,
+          na.rm = TRUE,
+          nrep = 1,
+          verbose = params$verbose,
+          calc.se = TRUE)
+  }
+  model <- tryCatch({
+    if (isTRUE(cfg$parallel) && params$nrep > 1) {
+      future::plan(future::multisession)
+      on.exit(future::plan(future::sequential), add = TRUE)
+      res <- future.apply::future_lapply(seeds, function(s) {
+        logger::log_debug(sprintf("LCA replicate %d", s))
+        fit_once(s)
+      }, future.seed = TRUE)
+      ll <- sapply(res, function(m) m$llik)
+      res[[which.max(ll)]]
+    } else {
+      fit_once(seeds[1])
+    }
+  }, interrupt = function(e) {
+    logger::log_warn("LCA model fitting interrupted by user")
+    stop("LCA model fitting interrupted", call. = FALSE)
+  }, error = function(e) {
+    logger::log_error(sprintf("LCA model fitting failed: %s", e$message))
+    stop("Latent class model fitting failed: ", e$message,
+         "\nConsider adjusting configuration or checking input data.", call. = FALSE)
+  })
+  if (!is.null(model$iter) && model$iter >= params$maxiter) {
+    logger::log_warn("LCA model may not have converged; reached maximum iterations")
+  }
+  model
 }
 
 #' Summarize latent class membership
@@ -136,25 +170,34 @@ merge_lca_results <- function(df_full, df_subset, classes) {
 
 #' Run the complete latent class analysis workflow
 #'
-#' @param data_path Path to the input CSV file.
-#' @param output_path File path to save the fitted model and merged data.
-#' @param config Configuration list (typically from `load_config()`).
-#' @param dry_run If `TRUE`, validate inputs and exit without running the
-#'   analysis.
-#' @param verbose Logical flag to print status messages.
-#' @param show_progress Display a progress bar for major steps when `TRUE`.
+#' @param data_path Character string path to the NCDB-style CSV input file.
+#'   The file must exist and contain all variables required by
+#'   `prepare_lca_data()`.
+#' @param output_path Destination file path (typically ending in `.RData`) used
+#'   to save the fitted model object and merged data set.
+#' @param config Named list of configuration parameters, usually read from
+#'   `load_config()`. Must contain an `lca` element specifying model settings
+#'   such as `nclass`, `maxiter`, and `tol`.
+#' @param dry_run Logical flag; when `TRUE` the function validates inputs and
+#'   required directories but does not execute the analysis.
+#' @param verbose Logical flag to emit progress messages through the logger.
+#' @param show_progress Logical flag indicating whether a progress bar should be
+#'   displayed for major workflow steps. Requires the `progress` package.
 #'
-#' @return Invisibly returns the fitted `poLCA` model or `NULL` when
-#'   `dry_run` is enabled.
+#' @return Invisibly returns the fitted [`poLCA::poLCA`] model. When
+#'   `dry_run = TRUE`, `NULL` is returned.
 #'
 #' @examples
-#' run_lca("data/puf_early.csv", "data/lca_earlypuf.RData")
+#' cfg <- load_config()
+#' run_lca("data/puf_early.csv", "data/lca_earlypuf.RData", cfg)
 run_lca <- function(data_path, output_path, config, dry_run = FALSE,
                     verbose = TRUE, show_progress = TRUE) {
   if (!is.character(data_path) || length(data_path) != 1) {
+    logger::log_error("`data_path` must be a single character string")
     stop("`data_path` must be a single character string", call. = FALSE)
   }
   if (!is.character(output_path) || length(output_path) != 1) {
+    logger::log_error("`output_path` must be a single character string")
     stop("`output_path` must be a single character string", call. = FALSE)
   }
 
@@ -163,8 +206,7 @@ run_lca <- function(data_path, output_path, config, dry_run = FALSE,
 
   if (dry_run) {
     if (verbose) {
-      message("Dry run: inputs validated. Results would be saved to ",
-              output_path)
+      logger::log_info(sprintf("Dry run: inputs validated. Results would be saved to %s", output_path))
     }
     return(invisible(NULL))
   }
@@ -179,20 +221,29 @@ run_lca <- function(data_path, output_path, config, dry_run = FALSE,
     )
   }
   tick <- function(msg) {
-    if (verbose) message(msg)
+    if (verbose) logger::log_info(msg)
     if (!is.null(pb)) pb$tick(tokens = list(what = msg))
   }
 
-  early.puf <- monitor_step(steps[1], read_lca_input(data_path), pb, verbose)
-  lca.earlydata <- monitor_step(steps[2], select_lca_variables(early.puf), pb, verbose)
-  lc7 <- monitor_step(steps[3], fit_lca_model(early.puf, lca.earlydata, config$lca), pb, verbose)
-  class7 <- monitor_step(steps[4], summarize_lca(lc7), pb, verbose)
-  monitor_step(steps[5], {
-    lca.pufdata <- merge_lca_results(early.puf, lca.earlydata, class7)
-    save(lc7, lca.pufdata, file = output_path)
-  }, pb, verbose)
-
-  if (verbose) message("LCA analysis complete")
-  invisible(lc7)
+  tryCatch({
+    early.puf <- monitor_step(steps[1], read_lca_input(data_path), pb, verbose)
+    lca.earlydata <- monitor_step(steps[2], select_lca_variables(early.puf), pb, verbose)
+    lc7 <- monitor_step(steps[3], fit_lca_model(early.puf, lca.earlydata, config$lca), pb, verbose)
+    class7 <- monitor_step(steps[4], summarize_lca(lc7), pb, verbose)
+    monitor_step(steps[5], {
+      lca.pufdata <- merge_lca_results(early.puf, lca.earlydata, class7)
+      save(lc7, lca.pufdata, file = output_path)
+    }, pb, verbose)
+    if (verbose) logger::log_info("LCA analysis complete")
+    invisible(lc7)
+  }, interrupt = function(e) {
+    logger::log_warn("LCA workflow interrupted by user")
+    stop("LCA workflow interrupted", call. = FALSE)
+  }, error = function(e) {
+    logger::log_error(sprintf("LCA workflow failed: %s", e$message))
+    diag <- collect_diagnostics()
+    stop("LCA workflow failed: ", e$message,
+         "\nCheck input data and configuration.", call. = FALSE)
+  })
 }
 

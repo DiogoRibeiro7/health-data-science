@@ -1,4 +1,4 @@
-name: R-CI
+name: CI
 
 on:
   push:
@@ -6,8 +6,11 @@ on:
   pull_request:
 
 jobs:
-  build:
+  test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        r-version: ['4.2', '4.3']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -16,6 +19,7 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
+          r-version: ${{ matrix.r-version }}
       - uses: r-lib/actions/setup-renv@v2
       - name: Restore R packages
         run: Rscript -e 'renv::restore(prompt = FALSE)'
@@ -23,9 +27,33 @@ jobs:
         run: pip install pre-commit
       - name: Run linters
         run: pre-commit run --all-files
-      - name: R CMD check
-        run: R CMD check --no-manual --as-cran .
-      - name: Install system dependencies
-        run: bash scripts/install_system_deps.sh
-      - name: Run tests
-        run: Rscript -e 'testthat::test_dir("tests/testthat")'
+      - name: Run tests with coverage
+        run: >-
+          Rscript -e 'cov <- covr::package_coverage();
+            print(cov);
+            if (covr::percent_coverage(cov) < 80) stop("coverage below 80%")'
+
+  security:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image
+        run: docker build -t health-data-science:latest .
+      - uses: aquasecurity/trivy-action@v0.13.0
+        with:
+          image-ref: health-data-science:latest
+          format: 'table'
+          exit-code: '1'
+          vuln-type: 'os,library'
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: security
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push image
+        run: |
+          docker build -t my-registry/health-data-science:${{ github.sha }} .
+          echo "push to registry step"

@@ -11,14 +11,14 @@ run_lca(
   data_path = "../data/puf_early.csv",
   output_path = "../data/lca_earlypuf.RData",
   config = cfg,
-  verbose = FALSE,
-  show_progress = FALSE
+  verbose = TRUE,
+  show_progress = TRUE
 )
 
 # Run regression models using the saved LCA output
 run_regression(
   "../data/lca_earlypuf.RData",
   config = cfg,
-  verbose = FALSE,
-  show_progress = FALSE
+  verbose = TRUE,
+  show_progress = TRUE
 )

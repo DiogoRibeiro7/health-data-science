@@ -142,3 +142,41 @@ grid_search <- function(param_grid, model_fn, score_fn, parallel = FALSE) {
   best_idx <- which.min(scores$score)
   list(best_params = as.list(scores[best_idx, names(param_grid)]), scores = scores)
 }
+
+#' Automated LCA model selection with cross-validation
+#'
+#' Performs a grid search over candidate class counts for a latent class analysis
+#' model. Each candidate is evaluated using k-fold cross-validation and the
+#' Bayesian Information Criterion (BIC). The model with the lowest average BIC
+#' across folds is selected.
+#'
+#' @param df_full Data frame containing all variables required by the model.
+#' @param df_subset Data frame produced by [`select_lca_variables()`] used for the
+#'   formula specification.
+#' @param k_range Integer vector of class counts to evaluate.
+#' @param folds Number of cross-validation folds.
+#' @param parallel Logical; whether to parallelise the inner cross-validation
+#'   loop.
+#'
+#' @return List with `best_k` and a data frame of `scores` for each candidate.
+#' @export
+#'
+#' @examples
+#' sel <- auto_select_lca(df, subset, k_range = 2:6, folds = 3)
+auto_select_lca <- function(df_full, df_subset, k_range = 2:10,
+                            folds = 5, parallel = FALSE) {
+  ensure_packages("poLCA")
+  eff <- with(df_subset, cbind(race3, hispanic3, urbandwell, age4, SES, insurancetype) ~ 1)
+  score_k <- function(k) {
+    model_fn <- function(train) {
+      poLCA::poLCA(eff, train, nclass = k, verbose = FALSE)
+    }
+    metrics <- cross_validate(df_full, k = folds, model_fn = model_fn,
+                              metric_fn = function(m, v) m$bic,
+                              parallel = parallel)
+    data.frame(k = k, BIC = mean(metrics))
+  }
+  scores <- do.call(rbind, lapply(k_range, score_k))
+  best_k <- scores$k[which.min(scores$BIC)]
+  list(best_k = best_k, scores = scores)
+}
