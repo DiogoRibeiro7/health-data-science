@@ -10,3 +10,7 @@
 ^app$
 ^api$
 ^Dockerfile$
+^k8s$
+^helm$
+^infra$
+^\.dockerignore$

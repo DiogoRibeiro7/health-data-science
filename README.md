@@ -83,6 +83,8 @@ Detailed references are provided in the `docs/` directory:
 - [Database Connectivity and ETL](docs/database_etl.md)
 - [Security and Compliance](docs/security_compliance.md)
 - [Monitoring and Observability](docs/observability.md)
+- [Deployment and CI/CD](docs/deployment_ci_cd.md)
+- [Backup and Disaster Recovery](docs/backup_dr.md)
 
 Package vignettes offer fully worked examples and can be viewed with:
 
