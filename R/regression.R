@@ -12,7 +12,7 @@ load_lca_results <- function(data_path, verbose = TRUE) {
     stop("`data_path` must be a single character string", call. = FALSE)
   }
   require_data_file(data_path)
-  if (verbose) message("Loading LCA results from: ", data_path)
+  if (verbose) log_info(paste("Loading LCA results from:", data_path), component = "regression")
   tryCatch(
     {
       load(data_path)
@@ -68,7 +68,7 @@ run_regression <- function(data_path, config, dry_run = FALSE, verbose = TRUE,
                            show_progress = TRUE) {
   require_data_file(data_path)
   if (dry_run) {
-    if (verbose) message("Dry run: inputs validated. Would load ", data_path)
+    if (verbose) log_info(paste("Dry run: inputs validated. Would load", data_path), component = "regression")
     return(invisible(list()))
   }
 
@@ -82,13 +82,13 @@ run_regression <- function(data_path, config, dry_run = FALSE, verbose = TRUE,
     )
   }
   tick <- function(msg) {
-    if (verbose) message(msg)
+    if (verbose) log_info(msg, component = "regression")
     if (!is.null(pb)) pb$tick(tokens = list(what = msg))
   }
 
   df <- monitor_step(steps[1], load_lca_results(data_path, verbose = verbose), pb, verbose)
   mintreat <- monitor_step(steps[2], fit_min_treatment_model(df, family = config$regression$family), pb, verbose)
   optcare <- monitor_step(steps[3], fit_optimal_care_model(df, family = config$regression$family), pb, verbose)
-  if (verbose) message("Regression analysis complete")
+  if (verbose) log_info("Regression analysis complete", component = "regression")
   list(mintreat = mintreat, optcare = optcare)
 }

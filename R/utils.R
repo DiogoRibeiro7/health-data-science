@@ -21,12 +21,12 @@
 #' ensure_packages(c("stats", "utils"))
 ensure_packages <- function(packages) {
   if (!is.character(packages)) {
-    logger::log_error("`packages` must be a character vector")
+    log_error("`packages` must be a character vector", component = "utils")
     stop("`packages` must be a character vector", call. = FALSE)
   }
   repos <- "https://cloud.r-project.org"
   for (pkg in packages) {
-    logger::log_debug(sprintf("Checking package '%s'", pkg))
+    log_debug(sprintf("Checking package '%s'", pkg), component = "utils")
     if (!requireNamespace(pkg, quietly = TRUE)) {
       attempt <- 1
       success <- FALSE
@@ -35,10 +35,10 @@ ensure_packages <- function(packages) {
           install.packages(pkg, repos = repos, dependencies = TRUE)
           success <- TRUE
         }, error = function(e) {
-          logger::log_warn(sprintf("Attempt %d to install '%s' failed: %s", attempt, pkg, e$message))
+          log_warn(sprintf("Attempt %d to install '%s' failed: %s", attempt, pkg, e$message), component = "utils")
           attempt <<- attempt + 1
           if (attempt > 2) {
-            logger::log_error(sprintf("Failed to install package '%s'", pkg))
+            log_error(sprintf("Failed to install package '%s'", pkg), component = "utils")
             stop("Failed to install package '", pkg, "': ", e$message,
                  "\nPlease check your internet connection or install the package manually.",
                  call. = FALSE)
@@ -46,12 +46,12 @@ ensure_packages <- function(packages) {
         })
       }
       if (!requireNamespace(pkg, quietly = TRUE)) {
-        logger::log_error(sprintf("Package '%s' could not be loaded after installation", pkg))
+        log_error(sprintf("Package '%s' could not be loaded after installation", pkg), component = "utils")
         stop("Package '", pkg, "' could not be loaded after installation.", call. = FALSE)
       }
     }
     suppressPackageStartupMessages(library(pkg, character.only = TRUE))
-    logger::log_info(sprintf("Package '%s' loaded", pkg))
+    log_info(sprintf("Package '%s' loaded", pkg), component = "utils")
   }
   invisible(TRUE)
 }
@@ -246,7 +246,11 @@ monitor_step <- function(step, expr, pb = NULL, verbose = TRUE) {
   elapsed <- proc.time()[["elapsed"]] - start
   mem_after <- sum(gc()[, 2])
   if (verbose) {
-    message(sprintf("%s completed in %.2f sec (%.1f MB used)", step, elapsed, mem_after - mem_before))
+    log_debug(
+      sprintf("%s completed", step),
+      component = "utils",
+      context = list(duration = elapsed, mem_mb = mem_after - mem_before)
+    )
   }
   if (!is.null(pb)) pb$tick(tokens = list(what = step))
   result
@@ -383,4 +387,3 @@ cache_result <- function(path, expr, depends = NULL, max_size_mb = Inf) {
   }
   result
 }
-

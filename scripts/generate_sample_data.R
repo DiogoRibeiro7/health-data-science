@@ -12,6 +12,8 @@ args <- commandArgs(trailingOnly = FALSE)
 script_path <- sub("^--file=", "", args[grep("^--file=", args)])
 script_dir <- dirname(normalizePath(script_path))
 project_root <- dirname(script_dir)
+source(file.path(project_root, "R", "logging.R"))
+init_logging()
 output_path <- file.path(project_root, "data", "puf_early.csv")
 set.seed(0)
 n <- 100
@@ -39,4 +41,4 @@ df <- data.frame(
 )
 df$age4 <- df$age_bin
 write.csv(df, output_path, row.names = FALSE)
-message("Sample data written to ", output_path)
+log_info(paste("Sample data written to", output_path), component = "script")

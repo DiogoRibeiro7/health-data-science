@@ -72,7 +72,7 @@ impute_missing <- function(data, m = 5) {
     imp <- mice::mice(data, m = m, printFlag = FALSE)
     mice::complete(imp)
   } else {
-    message("Package 'mice' not installed; using simple imputation")
+    log_warn("Package 'mice' not installed; using simple imputation", component = "data_processing")
     for (col in names(data)) {
       if (is.numeric(data[[col]])) {
         data[[col]][is.na(data[[col]])] <- median(data[[col]], na.rm = TRUE)
@@ -324,4 +324,3 @@ record_data_version <- function(file, log = "data/version_log.csv") {
   }
   invisible(TRUE)
 }
-
