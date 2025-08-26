@@ -69,11 +69,85 @@ select_lca_variables <- function(df) {
   )
 }
 
+#' Validate data before latent class modelling
+#'
+#' Performs a series of checks to identify common data quality issues that can
+#' hinder model convergence. Warnings are logged when potential problems are
+#' detected and a fatal error is raised when the sample size is clearly
+#' insufficient for the requested number of classes.
+#'
+#' @param df_sub Data frame containing the variables used for LCA.
+#' @param nclass Number of classes to be fitted.
+#'
+#' @return List of detected issues (invisible) for further inspection.
+#' @export
+validate_lca_data <- function(df_sub, nclass) {
+  issues <- list()
+
+  miss <- sapply(df_sub, function(x) sum(is.na(x)))
+  if (any(miss > 0)) {
+    issues$missing <- miss[miss > 0]
+    logger::log_warn(
+      "Missing data detected in LCA variables",
+      context = list(missing = issues$missing)
+    )
+  }
+
+  low_freq <- lapply(df_sub[sapply(df_sub, is.factor)], function(col) {
+    tbl <- table(col)
+    tbl[tbl < 5]
+  })
+  low_freq <- low_freq[sapply(low_freq, length) > 0]
+  if (length(low_freq) > 0) {
+    issues$low_frequency <- low_freq
+    logger::log_warn(
+      "Low-frequency categories found in factors",
+      context = list(low_frequency = low_freq)
+    )
+  }
+
+  if (nrow(df_sub) < nclass * 5) {
+    logger::log_error(
+      sprintf(
+        "Sample size (%d) is too small for %d classes",
+        nrow(df_sub), nclass
+      )
+    )
+    stop(
+      "Sample size is likely inadequate for the chosen number of classes.\n",
+      "Consider reducing `nclass` or increasing the dataset size.",
+      call. = FALSE
+    )
+  }
+
+  fac_cols <- names(df_sub)[sapply(df_sub, is.factor)]
+  if (length(fac_cols) > 1) {
+    pairs <- combn(fac_cols, 2, simplify = FALSE)
+    collinear <- list()
+    for (p in pairs) {
+      tab <- table(df_sub[[p[1]]], df_sub[[p[2]]])
+      if (any(prop.table(tab) %in% c(0, 1))) {
+        collinear[[paste(p, collapse = "_")]] <- tab
+      }
+    }
+    if (length(collinear) > 0) {
+      issues$collinearity <- collinear
+      logger::log_warn(
+        "Potential collinearity detected among categorical variables",
+        context = list(collinearity = names(collinear))
+      )
+    }
+  }
+
+  invisible(issues)
+}
+
 #' Fit latent class model
 #'
-#' Fits a [poLCA::poLCA] model using supplied configuration parameters. When
-#' `cfg$auto_classes` is `TRUE`, the optimal number of classes is determined
-#' via [`optimal_lca_classes()`] over the range `k_range` before fitting.
+#' Fits a [poLCA::poLCA] model using supplied configuration parameters and
+#' implements robust convergence monitoring with retry and fallback strategies.
+#' When `cfg$auto_classes` is `TRUE`, the optimal number of classes is
+#' determined via [`optimal_lca_classes()`] before fitting.
 #'
 #' @param df_full Data frame containing the full set of variables required by
 #'   the latent class model.
@@ -95,8 +169,16 @@ fit_lca_model <- function(df_full, df_subset, cfg) {
     opt <- optimal_lca_classes(df_full, df_subset, k_range = 2:10)
     params$nclass <- opt$best_k
   }
+
+  validate_lca_data(df_subset, params$nclass)
   logger::log_info(sprintf("Fitting LCA model with %d classes", params$nclass))
-  seeds <- seq_len(max(1, params$nrep))
+
+  seeds <- sample.int(1e5, max(1, params$nrep))
+  pb <- NULL
+  if (isTRUE(params$verbose) && requireNamespace("progress", quietly = TRUE) && length(seeds) > 1) {
+    pb <- progress::progress_bar$new(total = length(seeds), format = "[:bar] :current/:total (:elapsed)")
+  }
+
   fit_once <- function(seed) {
     set.seed(seed)
     poLCA(eff, df_full,
@@ -105,32 +187,43 @@ fit_lca_model <- function(df_full, df_subset, cfg) {
           tol = params$tol,
           na.rm = TRUE,
           nrep = 1,
-          verbose = params$verbose,
+          verbose = FALSE,
           calc.se = TRUE)
   }
-  model <- tryCatch({
-    if (isTRUE(cfg$parallel) && params$nrep > 1) {
-      future::plan(future::multisession)
-      on.exit(future::plan(future::sequential), add = TRUE)
-      res <- future.apply::future_lapply(seeds, function(s) {
-        logger::log_debug(sprintf("LCA replicate %d", s))
-        fit_once(s)
-      }, future.seed = TRUE)
-      ll <- sapply(res, function(m) m$llik)
-      res[[which.max(ll)]]
-    } else {
-      fit_once(seeds[1])
+
+  attempt_fit <- function() {
+    best <- NULL
+    for (s in seeds) {
+      if (!is.null(pb)) pb$tick()
+      res <- try(fit_once(s), silent = TRUE)
+      if (inherits(res, "try-error")) {
+        logger::log_warn(sprintf("Convergence failed for seed %d: %s", s, attr(res, "condition")$message))
+        next
+      }
+      if (!is.null(res$iter) && res$iter >= params$maxiter) {
+        logger::log_warn(sprintf("Seed %d reached maximum iterations without convergence", s))
+        next
+      }
+      if (is.null(best) || res$llik > best$llik) {
+        best <- res
+      }
     }
-  }, interrupt = function(e) {
-    logger::log_warn("LCA model fitting interrupted by user")
-    stop("LCA model fitting interrupted", call. = FALSE)
-  }, error = function(e) {
-    logger::log_error(sprintf("LCA model fitting failed: %s", e$message))
-    stop("Latent class model fitting failed: ", e$message,
-         "\nConsider adjusting configuration or checking input data.", call. = FALSE)
-  })
-  if (!is.null(model$iter) && model$iter >= params$maxiter) {
-    logger::log_warn("LCA model may not have converged; reached maximum iterations")
+    best
+  }
+
+  model <- attempt_fit()
+  if (is.null(model)) {
+    if (params$nclass > 2) {
+      logger::log_warn("Retrying LCA with fewer classes due to convergence failures")
+      params$nclass <- params$nclass - 1
+      return(fit_lca_model(df_full, df_subset, params))
+    }
+    logger::log_error("LCA model failed to converge after multiple attempts")
+    stop(
+      "LCA model failed to converge even after retries.\n",
+      "Check data quality, reduce the number of classes, or adjust `maxiter`/`tol`.\n",
+      "See documentation: docs/troubleshooting.md#lca", call. = FALSE
+    )
   }
   model
 }
@@ -246,4 +339,3 @@ run_lca <- function(data_path, output_path, config, dry_run = FALSE,
          "\nCheck input data and configuration.", call. = FALSE)
   })
 }
-
