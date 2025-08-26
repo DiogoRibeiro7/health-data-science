@@ -12,9 +12,19 @@ test_that("encryption round trip works", {
 
 test_that("API key verification and roles", {
   store <- tempfile()
-  yaml::write_yaml(list(keys = list(list(user = "u", key = "k", role = "user"))), store)
+  hash <- hash_api_key("k")
+  yaml::write_yaml(list(keys = list(list(user = "u", hash = hash, role = "user"))), store)
   expect_true(verify_api_key("k", "user", store))
   expect_false(verify_api_key("k", "admin", store))
+})
+
+test_that("JWT signature validation", {
+  key <- openssl::rsa_keygen()
+  token <- jose::jwt_encode_sig(list(sub = "u", role = "user"), key)
+  pub <- openssl::pem_write(openssl::as.list(key)$pubkey)
+  expect_true(validate_oidc_token(token, public_key = pub))
+  tampered <- paste0(token, "x")
+  expect_false(validate_oidc_token(tampered, public_key = pub))
 })
 
 test_that("pseudonymisation alters identifiers", {

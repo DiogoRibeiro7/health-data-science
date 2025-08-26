@@ -31,13 +31,24 @@
 #' db_disconnect(src); db_disconnect(dest)
 run_etl <- function(src_conn, dest_conn, query, dest_table,
                     transform = NULL, chunk_size = 1000,
-                    lineage_file = "data_lineage.csv") {
-  cb <- function(chunk) {
-    if (!is.null(transform)) chunk <- transform(chunk)
-    DBI::dbWriteTable(dest_conn, dest_table, chunk, append = TRUE, row.names = FALSE)
+                    lineage_file = "data_lineage.csv", retries = 3) {
+  attempt <- 1
+  repeat {
+    try({
+      DBI::dbWithTransaction(dest_conn, {
+        cb <- function(chunk) {
+          if (!is.null(transform)) chunk <- transform(chunk)
+          DBI::dbWriteTable(dest_conn, dest_table, chunk, append = TRUE, row.names = FALSE)
+        }
+        db_query(src_conn, query, chunk_size = chunk_size, callback = cb)
+      })
+      record_data_lineage("database", dest_table, query, lineage_file)
+      break
+    }, silent = TRUE)
+    if (attempt >= retries) stop("ETL failed after retries")
+    attempt <- attempt + 1
+    Sys.sleep(1)
   }
-  db_query(src_conn, query, chunk_size = chunk_size, callback = cb)
-  record_data_lineage("database", dest_table, query, lineage_file)
   invisible(TRUE)
 }
 
@@ -65,4 +76,3 @@ record_data_lineage <- function(source, destination, transformation,
   )
   readr::write_csv(entry, lineage_file, append = file.exists(lineage_file))
 }
-

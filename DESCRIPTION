@@ -50,6 +50,8 @@ Imports:
     pdp,
     lime,
     openssl,
+    jose,
+    filelock,
     yaml,
     uuid,
     jsonlite,

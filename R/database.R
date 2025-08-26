@@ -22,7 +22,7 @@
 #' cfg <- list(dbms = "sqlite", dbname = tempfile(fileext = ".db"))
 #' pool <- db_connect(cfg)
 #' db_disconnect(pool)
-#' 
+#'
 #' @seealso `db_disconnect`, `db_query`
 db_connect <- function(config, pool_size = 5) {
   stopifnot(is.list(config))
@@ -71,6 +71,7 @@ db_disconnect <- function(conn) {
 #'
 #' @param conn Database connection or pool.
 #' @param sql SQL query string.
+#' @param params Optional named list of query parameters.
 #' @param chunk_size Number of rows per fetch. If `NULL`, all rows are returned.
 #' @param callback Optional function applied to each chunk.
 #'
@@ -79,11 +80,15 @@ db_disconnect <- function(conn) {
 #' @examples
 #' pool <- db_connect(list(dbms = "sqlite", dbname = tempfile()))
 #' DBI::dbWriteTable(pool, "x", data.frame(a = 1:3))
-#' db_query(pool, "select * from x")
+#' db_query(pool, "select * from x where a = ?", params = list(1))
 #' db_disconnect(pool)
-db_query <- function(conn, sql, chunk_size = NULL, callback = NULL) {
+db_query <- function(conn, sql, params = NULL, chunk_size = NULL, callback = NULL) {
   res <- DBI::dbSendQuery(conn, sql)
   on.exit(DBI::dbClearResult(res), add = TRUE)
+  if (!is.null(params)) {
+    params <- lapply(params, function(p) if (is.character(p)) sanitize_input(p) else p)
+    DBI::dbBind(res, params)
+  }
   if (is.null(chunk_size)) {
     DBI::dbFetch(res)
   } else {
@@ -100,4 +105,3 @@ db_query <- function(conn, sql, chunk_size = NULL, callback = NULL) {
     if (is.null(callback)) dplyr::bind_rows(out) else invisible(NULL)
   }
 }
-

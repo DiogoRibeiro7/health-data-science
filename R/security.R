@@ -127,10 +127,23 @@ sanitize_input <- function(x) {
 #' yaml::write_yaml(list(keys = list(list(user = "alice", key = "123", role = "admin"))), store)
 #' verify_api_key("123", "admin", store)
 #' @export
+hash_api_key <- function(key, salt = openssl::base64_encode(openssl::rand_bytes(16))) {
+  digest::digest(paste0(salt, key), algo = "sha256") |> paste(salt, ., sep = "$")
+}
+
 verify_api_key <- function(key, required_role = NULL, store = "config/api_keys.yaml") {
   if (!file.exists(store)) return(FALSE)
   dat <- yaml::read_yaml(store)$keys
-  idx <- which(vapply(dat, function(x) x$key == key, logical(1)))
+  idx <- which(vapply(dat, function(x) {
+    if (!is.null(x$hash)) {
+      parts <- strsplit(x$hash, "\$", fixed = TRUE)[[1]]
+      if (length(parts) != 2) return(FALSE)
+      salt <- parts[1]; hash <- parts[2]
+      digest::digest(paste0(salt, key), algo = "sha256") == hash
+    } else {
+      identical(x$key, key)
+    }
+  }, logical(1)))
   if (length(idx) == 0) return(FALSE)
   role <- dat[[idx]]$role
   if (is.null(required_role)) return(TRUE)
@@ -150,7 +163,7 @@ rotate_api_key <- function(user, store = "config/api_keys.yaml") {
   dat <- if (file.exists(store)) yaml::read_yaml(store) else list(keys = list())
   idx <- which(vapply(dat$keys, function(x) x$user == user, logical(1)))
   new_key <- uuid::UUIDgenerate()
-  entry <- list(user = user, key = new_key, role = "user")
+  entry <- list(user = user, hash = hash_api_key(new_key), role = "user")
   if (length(idx) == 0) {
     dat$keys[[length(dat$keys) + 1]] <- entry
   } else {
@@ -262,13 +275,12 @@ run_secure_api <- function(pr, cert, key, port = 8000, host = "0.0.0.0") {
 #'
 #' @param token Bearer token provided by the client.
 #' @param required_role Minimum role required for the request.
+#' @param public_key PEM-encoded public key used to verify the signature.
 #' @return Logical indicating whether the token is valid and authorised.
 #' @export
-validate_oidc_token <- function(token, required_role = "user") {
+validate_oidc_token <- function(token, required_role = "user", public_key) {
   tryCatch({
-    parts <- strsplit(token, "\\.", fixed = TRUE)[[1]]
-    if (length(parts) < 2) return(FALSE)
-    payload <- jsonlite::fromJSON(rawToChar(openssl::base64_decode(parts[2])))
+    payload <- jose::jwt_decode_sig(token, public_key)
     if (!is.null(payload$exp) && Sys.time() > as.POSIXct(payload$exp, origin = "1970-01-01")) return(FALSE)
     role <- if (!is.null(payload$role)) payload$role else "user"
     roles <- c("user", "admin")

@@ -79,7 +79,10 @@ appender_chain <- function(appenders) {
 
 # Internal appender with basic size-based rotation
 rotating_appender <- function(file, max_bytes, backups) {
+  lockfile <- paste0(file, ".lock")
   function(line) {
+    lock <- filelock::lock(lockfile)
+    on.exit(filelock::unlock(lock), add = TRUE)
     if (file.exists(file) && file.info(file)$size > max_bytes) {
       for (i in rev(seq_len(backups))) {
         src <- if (i == 1) file else sprintf("%s.%d", file, i - 1)
@@ -171,7 +174,9 @@ log_error <- function(msg, component = "general", context = list()) {
 #' @param msg Message to sanitize.
 #' @return Sanitized character string.
 sanitize_message <- function(msg) {
-  gsub("\\b(\\d{4}-\\d{2}-\\d{2}|\\d{9,})\\b", "[REDACTED]", msg)
+  msg <- gsub("\\b(\\d{3}-\\d{2}-\\d{4}|\\d{9,})\\b", "[REDACTED]", msg)
+  msg <- gsub("[[:alnum:]._%+-]+@[[:alnum:].-]+", "[REDACTED]", msg)
+  gsub("\\b\\d{4}-\\d{2}-\\d{2}\\b", "[REDACTED]", msg)
 }
 
 #' Log access events for audit trails
