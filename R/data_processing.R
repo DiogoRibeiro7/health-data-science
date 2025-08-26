@@ -189,32 +189,63 @@ add_polynomial_features <- function(data, cols, degree = 2) {
 #' @return A data frame containing the parsed data.
 #' @examples
 #' read_data_source("data/puf_early.csv", "csv")
-read_data_source <- function(path, source = c("csv", "excel", "sqlite"), table = NULL) {
+read_data_source <- function(path, source = c("csv", "excel", "sqlite"),
+                             table = NULL, schema = NULL, retries = 1,
+                             progress = TRUE) {
   source <- match.arg(source)
   if (!is.character(path) || length(path) != 1) {
-    logger::log_error("`path` must be a single character string")
+    log_error("`path` must be a single character string", component = "data_processing")
     stop("`path` must be a single character string", call. = FALSE)
   }
-  logger::log_info(sprintf("Reading %s data from %s", source, path))
-  tryCatch({
-    if (source == "csv") {
-      readr::read_csv(path, show_col_types = FALSE)
-    } else if (source == "excel") {
-      readxl::read_excel(path)
-    } else {
-      if (is.null(table)) {
-        logger::log_error("`table` must be provided for sqlite sources")
-        stop("`table` must be provided for sqlite sources", call. = FALSE)
+  attempt <- 1
+  last_err <- NULL
+  while (attempt <= retries + 1) {
+    log_info(sprintf("Reading %s data from %s (attempt %d)", source, path, attempt),
+             component = "data_processing")
+    res <- try({
+      if (source == "csv") {
+        read_csv_safely(path, schema = schema, retries = 0, progress = progress)
+      } else if (source == "excel") {
+        require_data_file(path)
+        if (tolower(tools::file_ext(path)) %in% c("xls", "xlsx")) {
+          readxl::read_excel(path)
+        } else {
+          stop("File extension does not appear to be Excel", call. = FALSE)
+        }
+      } else {
+        require_data_file(path)
+        if (is.null(table)) {
+          log_error("`table` must be provided for sqlite sources", component = "data_processing")
+          stop("`table` must be provided for sqlite sources", call. = FALSE)
+        }
+        con <- DBI::dbConnect(RSQLite::SQLite(), path)
+        on.exit(DBI::dbDisconnect(con), add = TRUE)
+        DBI::dbReadTable(con, table)
       }
-      con <- DBI::dbConnect(RSQLite::SQLite(), path)
-      on.exit(DBI::dbDisconnect(con), add = TRUE)
-      DBI::dbReadTable(con, table)
+    }, silent = TRUE)
+    if (!inherits(res, "try-error")) {
+      if (!is.null(schema) && source != "csv") validate_schema(res, schema)
+      dup <- duplicated(res)
+      if (any(dup)) {
+        log_warn(sprintf("%d duplicate rows detected", sum(dup)), component = "data_processing")
+      }
+      miss <- colMeans(is.na(res))
+      if (any(miss > 0)) {
+        log_warn("Missing data detected", component = "data_processing",
+                 context = list(missing = miss[miss > 0]))
+      }
+      log_audit(Sys.info()[["user"]], path, "read")
+      return(res)
     }
-  }, error = function(e) {
-    logger::log_error(sprintf("Failed to read data source: %s", e$message))
-    stop("Failed to read data source: ", e$message,
-         "\nVerify the path and required parameters.", call. = FALSE)
-  })
+    last_err <- res
+    log_warn(sprintf("Read attempt %d failed: %s", attempt, res), component = "data_processing")
+    attempt <- attempt + 1
+    Sys.sleep(1)
+  }
+  log_error(sprintf("Failed to read data source after %d attempts", retries + 1),
+            component = "data_processing")
+  stop("Failed to read data source: ", last_err,
+       "\nVerify the path and required parameters.", call. = FALSE)
 }
 
 #' Export data to various formats
@@ -226,32 +257,50 @@ read_data_source <- function(path, source = c("csv", "excel", "sqlite"), table =
 #' @return Invisible `TRUE` when successful.
 #' @examples
 #' export_data(mtcars, "mtcars.csv", "csv")
-export_data <- function(data, path, format = c("csv", "rds", "excel")) {
+export_data <- function(data, path, format = c("csv", "rds", "excel"),
+                        retries = 1, overwrite = TRUE) {
   format <- match.arg(format)
   if (!is.data.frame(data)) {
-    logger::log_error("`data` must be a data frame")
+    log_error("`data` must be a data frame", component = "data_processing")
     stop("`data` must be a data frame", call. = FALSE)
   }
   if (!is.character(path) || length(path) != 1) {
-    logger::log_error("`path` must be a single character string")
+    log_error("`path` must be a single character string", component = "data_processing")
     stop("`path` must be a single character string", call. = FALSE)
   }
+  if (file.exists(path) && !overwrite) {
+    stop("File exists and overwrite = FALSE: ", path, call. = FALSE)
+  }
   ensure_dir(path)
-  logger::log_info(sprintf("Exporting data to %s (%s)", path, format))
-  tryCatch({
-    if (format == "csv") {
-      readr::write_csv(data, path)
-    } else if (format == "rds") {
-      saveRDS(data, path)
-    } else {
-      writexl::write_xlsx(data, path)
+  attempt <- 1
+  last_err <- NULL
+  while (attempt <= retries + 1) {
+    log_info(sprintf("Exporting data to %s (%s) attempt %d", path, format, attempt),
+             component = "data_processing")
+    res <- try({
+      if (format == "csv") {
+        readr::write_csv(data, path)
+      } else if (format == "rds") {
+        saveRDS(data, path)
+      } else {
+        writexl::write_xlsx(data, path)
+      }
+    }, silent = TRUE)
+    if (!inherits(res, "try-error")) {
+      log_audit(Sys.info()[["user"]], path, "write")
+      return(invisible(TRUE))
     }
-  }, error = function(e) {
-    logger::log_error(sprintf("Failed to export data: %s", e$message))
-    stop("Failed to export data: ", e$message,
-         "\nCheck that the destination is writable.", call. = FALSE)
-  })
-  invisible(TRUE)
+    last_err <- res
+    if (grepl("Permission denied|Resource busy", res)) {
+      log_warn("Destination file locked, retrying", component = "data_processing")
+    }
+    attempt <- attempt + 1
+    Sys.sleep(1)
+  }
+  log_error(sprintf("Failed to export data after %d attempts", retries + 1),
+            component = "data_processing")
+  stop("Failed to export data: ", last_err,
+       "\nCheck that the destination is writable.", call. = FALSE)
 }
 
 #' Run a sequence of data transformations with validation

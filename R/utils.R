@@ -123,6 +123,40 @@ require_data_file <- function(path) {
   invisible(TRUE)
 }
 
+#' Validate that a data frame conforms to an expected schema
+#'
+#' Compares column names and basic classes in `data` against the supplied
+#' schema specification. The schema should be a named list where each element
+#' is a character string describing the required class of the corresponding
+#' column. Missing columns or class mismatches trigger informative errors so
+#' users can correct upstream data issues before analysis.
+#'
+#' @param data Data frame to validate.
+#' @param schema Named list mapping column names to expected classes
+#'   (e.g. `list(id = "integer", name = "character")`).
+#'
+#' @return Invisible `TRUE` when validation succeeds.
+#' @examples
+#' validate_schema(data.frame(id = 1L), list(id = "integer"))
+#' @export
+validate_schema <- function(data, schema) {
+  stopifnot(is.data.frame(data))
+  stopifnot(is.list(schema))
+  missing <- setdiff(names(schema), names(data))
+  if (length(missing)) {
+    stop("Missing expected columns: ", paste(missing, collapse = ", "),
+         call. = FALSE)
+  }
+  for (nm in names(schema)) {
+    exp_cls <- schema[[nm]]
+    if (!inherits(data[[nm]], exp_cls)) {
+      stop(sprintf("Column '%s' should be of type %s but is %s",
+                   nm, exp_cls, class(data[[nm]])[1]), call. = FALSE)
+    }
+  }
+  invisible(TRUE)
+}
+
 #' Safely read a CSV file with informative errors
 #'
 #' Wraps [base::read.csv()] and checks for file existence before attempting to
@@ -142,26 +176,54 @@ require_data_file <- function(path) {
 #' tmp <- tempfile(fileext = ".csv"); write.csv(mtcars, tmp)
 #' read_csv_safely(tmp)
 #' @export
-read_csv_safely <- function(path, retries = 1) {
+read_csv_safely <- function(path, schema = NULL, retries = 1, progress = TRUE) {
   if (!is.character(path) || length(path) != 1) {
-    logger::log_error("`path` must be a single character string")
+    log_error("`path` must be a single character string", component = "utils")
     stop("`path` must be a single character string", call. = FALSE)
   }
   require_data_file(path)
+  if (file.access(path, 4) != 0) {
+    log_error(sprintf("No read permission for %s", path), component = "utils")
+    stop("Insufficient permissions to read file: ", path, call. = FALSE)
+  }
+  if (tolower(tools::file_ext(path)) != "csv") {
+    log_warn(sprintf("File %s does not have .csv extension", path), component = "utils")
+  }
+  enc <- tryCatch(readr::guess_encoding(path, n_max = 1000)$encoding[1],
+                  error = function(e) "UTF-8")
   attempt <- 1
+  last_err <- NULL
   while (attempt <= retries + 1) {
-    logger::log_info(sprintf("Reading CSV attempt %d: %s", attempt, path))
-    res <- try(read.csv(path), silent = TRUE)
+    log_info(sprintf("Reading CSV attempt %d: %s", attempt, path), component = "utils")
+    res <- try(
+      readr::read_csv(path, locale = readr::locale(encoding = enc),
+                      show_col_types = FALSE, progress = progress),
+      silent = TRUE
+    )
     if (!inherits(res, "try-error")) {
+      if (!is.null(schema)) validate_schema(res, schema)
+      dup <- duplicated(res)
+      if (any(dup)) {
+        log_warn(sprintf("%d duplicate rows detected", sum(dup)), component = "utils")
+      }
+      miss <- colMeans(is.na(res))
+      if (any(miss > 0)) {
+        log_warn("Missing data detected", component = "utils",
+                 context = list(missing = miss[miss > 0]))
+      }
+      log_audit(Sys.info()[["user"]], path, "read")
       return(res)
     }
-    logger::log_warn(sprintf("Failed to read '%s': %s", path, res))
+    last_err <- res
+    if (grepl("Permission denied|Resource busy", res)) {
+      log_warn("File appears locked, retrying", component = "utils")
+    }
     attempt <- attempt + 1
     Sys.sleep(1)
   }
-  logger::log_error(sprintf("Unable to read CSV after %d attempts", retries + 1))
-  stop("Failed to read input data '", path, "'. Ensure the file is a valid CSV and accessible.",
-       call. = FALSE)
+  log_error(sprintf("Unable to read CSV after %d attempts", retries + 1), component = "utils")
+  stop("Failed to read input data '", path, "': ", last_err,
+       "\nCheck file format, encoding, and permissions.", call. = FALSE)
 }
 
 #' Read a large CSV file in chunks

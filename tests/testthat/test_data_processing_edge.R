@@ -33,3 +33,15 @@ test_that("record_data_version logs entry", {
   record_data_version(tmp, log)
   expect_true(file.exists(log))
 })
+
+test_that("read_data_source enforces schema and retries", {
+  tmp <- tempfile(fileext = ".csv")
+  write.csv(data.frame(a = 1, b = 2), tmp, row.names = FALSE)
+  expect_error(read_data_source(tmp, "csv", schema = list(a = "character")))
+  expect_silent(read_data_source(tmp, "csv", schema = list(a = "double", b = "double")))
+})
+
+test_that("export_data errors on non-data frame", {
+  tmp <- tempfile(fileext = ".csv")
+  expect_error(export_data(1, tmp))
+})
