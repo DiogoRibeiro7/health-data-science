@@ -9,4 +9,9 @@
 ^CONTRIBUTING\.md$
 ^app$
 ^api$
+^clients$
 ^Dockerfile$
+^k8s$
+^helm$
+^infra$
+^\.dockerignore$

@@ -1,0 +1,26 @@
+---
+title: "Regulatory Compliance Report"
+output: html_document
+params:
+  dataset: NULL
+  jurisdiction: "FDA"
+---
+
+## Compliance Statement
+
+This report outlines key compliance metrics required by the specified regulatory body.
+
+## Data Overview
+
+```{r}
+if (!is.null(params$dataset)) {
+  knitr::kable(head(params$dataset))
+} else {
+  "No dataset provided"
+}
+```
+
+## Audit Trail
+
+* Include audit trail information and timestamps.
+* Ensure data lineage and consent tracking is documented.

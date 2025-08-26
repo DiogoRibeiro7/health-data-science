@@ -16,16 +16,18 @@ script_dir <- dirname(normalizePath(script_path))
 project_root <- dirname(script_dir)
 source(file.path(project_root, "R", "utils.R"))
 source(file.path(project_root, "R", "regression.R"))
+source(file.path(project_root, "R", "logging.R"))
+init_logging()
 
 # Verify R version for compatibility
 tryCatch(check_r_version("4.0.0"), error = function(e) {
-  message(e$message)
+  log_error(e$message, component = "script")
   quit(status = 1)
 })
 
 # Ensure optparse is available for parsing
 tryCatch(ensure_packages("optparse"), error = function(e) {
-  message("Package setup failed: ", e$message)
+  log_error(paste("Package setup failed:", e$message), component = "script")
   quit(status = 1)
 })
 
@@ -51,7 +53,7 @@ parser <- optparse::OptionParser(option_list = option_list,
 opts <- optparse::parse_args(parser)
 
 if (opts$version) {
-  cat(sprintf("ncdbearly_Regression.R version %s\n", version))
+  log_info(sprintf("ncdbearly_Regression.R version %s", version), component = "script")
   quit(status = 0)
 }
 
@@ -65,7 +67,7 @@ if (!opts$dry_run) {
   pkgs <- c("aod", "survival", "survminer", "ranger", "ggfortify",
             "ggplot2", "progress")
   tryCatch(ensure_packages(pkgs), error = function(e) {
-    message("Package setup failed: ", e$message)
+    log_error(paste("Package setup failed:", e$message), component = "script")
     quit(status = 1)
   })
 }
@@ -74,7 +76,7 @@ tryCatch(
   run_regression(opts$input, cfg, dry_run = opts$dry_run, verbose = verbose,
                  show_progress = verbose && !opts$quiet),
   error = function(e) {
-    message("Regression workflow failed: ", e$message)
+    log_error(paste("Regression workflow failed:", e$message), component = "script")
     quit(status = 1)
   }
 )

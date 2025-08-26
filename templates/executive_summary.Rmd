@@ -1,0 +1,21 @@
+---
+title: "Executive Summary"
+output: html_document
+params:
+  highlights: NULL
+---
+
+## Key Insights
+
+```{r}
+if (!is.null(params$highlights)) {
+  knitr::kable(params$highlights)
+} else {
+  "No highlights provided"
+}
+```
+
+## Recommendations
+
+* Provide actionable recommendations based on the analysis.
+* Summaries are designed for quick executive review.

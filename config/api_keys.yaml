@@ -1,0 +1,4 @@
+keys:
+  - user: demo
+    key: demo-key
+    role: admin

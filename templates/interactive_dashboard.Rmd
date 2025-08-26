@@ -1,0 +1,31 @@
+---
+title: "Interactive Analysis Report"
+output: html_document
+params:
+  data: NULL
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+if (!is.null(params$data)) df <- params$data
+```
+
+## Interactive Scatter
+
+```{r}
+if (exists("df")) {
+  plot_interactive(df, names(df)[1], names(df)[2])
+} else {
+  "No data"
+}
+```
+
+## Time Series
+
+```{r}
+if (exists("df")) {
+  plot_timeseries(df, names(df)[1], names(df)[2])
+} else {
+  NULL
+}
+```

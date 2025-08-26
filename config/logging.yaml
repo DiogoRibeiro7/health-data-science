@@ -1,0 +1,6 @@
+level: INFO
+file: outputs/hds.log
+rotate_size: 1048576
+max_backups: 3
+console: true
+remote_url: null
