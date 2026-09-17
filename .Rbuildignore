@@ -1,6 +1,5 @@
 ^\.github$
 ^scripts$
-^tests$
 ^data$
 ^renv$
 ^renv\.lock$
