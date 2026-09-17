@@ -117,6 +117,7 @@ spatial_cluster_scan <- function(data, value, coords) {
   lm <- spdep::localmoran(data[[value]], lw)
   cbind(data, lm)
 }
+
 #' Join data to spatial polygons
 #'
 #' Reads a shapefile and merges it with epidemiological data using key columns.
@@ -144,12 +145,11 @@ gis_join <- function(data, shapefile, key_data, key_shape) {
 #' @return ggplot object.
 #' @export
 disease_map <- function(sf_data, value) {
-  ensure_packages(c("sf","ggplot2"))
+  ensure_packages(c("sf", "ggplot2"))
   ggplot2::ggplot(sf_data) +
     ggplot2::geom_sf(ggplot2::aes_string(fill = value)) +
     ggplot2::theme_void()
 }
-
 
 #' Simulate a basic SIR infectious disease model
 #'
@@ -233,20 +233,3 @@ model_air_pollution <- function(data, outcome, pollutant) {
   formula <- stats::as.formula(paste(outcome, "~", pollutant))
   stats::lm(formula, data = data)
 }
-
-#' Basic cost-effectiveness analysis
-#'
-#' Computes the incremental cost-effectiveness ratio (ICER) between two
-#' interventions.
-#'
-#' @param cost_a Cost of intervention A.
-#' @param effect_a Effect (e.g., QALYs) of intervention A.
-#' @param cost_b Cost of intervention B.
-#' @param effect_b Effect of intervention B.
-#'
-#' @return ICER value.
-#' @export
-cost_effectiveness <- function(cost_a, effect_a, cost_b, effect_b) {
-  (cost_a - cost_b) / (effect_a - effect_b)
-}
-
