@@ -1,10 +1,13 @@
 Package: healthdatascience
 Title: Health Data Science Toolkit
-Version: 0.1.0
+Version: 0.2.0
 Authors@R:
     person(given = "Diogo", family = "Ribeiro", email = "dfr@esmad.ipp.pt", role = c("aut", "cre"), comment = c(ORCID = "0009-0001-2022-7072"))
-Description: Utilities and analysis scripts for health data science workflows, including an example NCDB latent class analysis.
-License: MIT
+Description: Reproducible statistical and data-science tools for clinical,
+    epidemiological, and real-world health data, including data validation,
+    latent-class modelling, regression, survival analysis, observational-study
+    methods, population-health analysis, reporting, and operational workflows.
+License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
@@ -68,4 +71,5 @@ Suggests:
     RMariaDB,
     odbc,
     ROracle
+Config/testthat/edition: 3
 VignetteBuilder: knitr
