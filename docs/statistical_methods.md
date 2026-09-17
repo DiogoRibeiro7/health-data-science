@@ -125,6 +125,46 @@ confidence bands and covariate-adjusted transition probabilities are separate
 extensions rather than being silently inferred from the transition-specific Cox
 models.
 
+## Longitudinal Mixed-Effects Models
+
+`fit_longitudinal_mixed()` fits Gaussian linear mixed-effects models for
+continuous repeated outcomes using `lme4::lmer()`. Time is always included as a
+fixed effect and optional covariates may be numeric, logical, or factors.
+
+Two random-effects structures are supported:
+
+* **Random intercept** allows each subject to have a subject-specific baseline
+  level while sharing the same fixed time slope.
+* **Random intercept and slope** allows both subject-specific baseline levels and
+  subject-specific longitudinal slopes. Intercept-slope covariance can be
+  estimated or suppressed explicitly.
+
+The function requires genuine repeated measurements. Random-slope models further
+require multiple subjects with more than one distinct observed time point.
+Missing values fail by default and may instead be removed explicitly with
+`na_action = "omit"`.
+
+The fitted object stores sample size, number of subjects, random-effects
+structure, estimation method, singularity status, and any optimizer convergence
+messages. A singular fit indicates that the requested random-effects covariance
+structure is not fully supported by the data and should be simplified or
+investigated rather than accepted automatically.
+
+`tidy_longitudinal_mixed()` reports fixed-effect estimates, standard errors,
+Wald statistics, and confidence intervals. It deliberately does **not** report
+p-values because denominator degrees of freedom for linear mixed models require
+an additional inferential approximation such as Satterthwaite or Kenward-Roger.
+Those approximations are not silently assumed.
+
+`longitudinal_variance_components()` exposes subject-level random-effect
+variances, random-effect covariance or correlation, and residual variance. These
+components should be interpreted alongside singularity and convergence
+information rather than only through fixed-effect coefficients.
+
+REML is the default for parameter estimation. ML is available when comparing
+models with different fixed-effect structures; REML likelihoods should not be
+used for such fixed-effect likelihood-ratio comparisons.
+
 ## Bootstrap Confidence Intervals
 
 Functions such as `bootstrap_ci()` draw repeated samples with replacement to
