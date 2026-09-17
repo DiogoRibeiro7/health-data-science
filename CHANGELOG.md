@@ -26,6 +26,9 @@ All notable changes to this project will be documented in this file.
 - Added `instrumental_variable_diagnostics()` and `tidy_instrumental_variable()` with weak-instrument and overidentification reporting.
 - Added group-time difference-in-differences for staggered adoption with never-treated and not-yet-treated controls.
 - Added cohort-time ATT tables, event-study/group/calendar aggregations, and pre-treatment Wald diagnostics.
+- Added explicit sharp regression-discontinuity modelling with bandwidth, kernel, and local-polynomial controls.
+- Added RD covariate-continuity and running-variable density diagnostics.
+- Added `tidy_regression_discontinuity()` for transparent local-effect inference at the cutoff.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
