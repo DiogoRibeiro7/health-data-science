@@ -24,6 +24,8 @@ All notable changes to this project will be documented in this file.
 - Added influence-function Wald inference for doubly robust treatment-effect estimates.
 - Added explicit two-stage least-squares IV models with first-stage partial F and partial R-squared diagnostics.
 - Added `instrumental_variable_diagnostics()` and `tidy_instrumental_variable()` with weak-instrument and overidentification reporting.
+- Added group-time difference-in-differences for staggered adoption with never-treated and not-yet-treated controls.
+- Added cohort-time ATT tables, event-study/group/calendar aggregations, and pre-treatment Wald diagnostics.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
