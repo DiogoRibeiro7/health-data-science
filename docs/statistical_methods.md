@@ -54,6 +54,42 @@ modelling depends on the scientific estimand. The event definition, competing
 events, censoring mechanism, follow-up horizon, and covariate coding should be
 specified before fitting the model.
 
+## Recurrent Events
+
+`fit_recurrent_events()` fits recurrent-event Cox models to start-stop
+counting-process data and uses subject-level clustering to obtain robust standard
+errors for repeated events within a subject.
+
+Two models are available:
+
+* **Andersen-Gill** treats recurrent events as repeated realizations of a common
+  counting process with a shared baseline hazard. Subjects re-enter the risk set
+  after an event and correlation between repeated event intervals is handled by
+  clustering on subject identifier.
+* **PWP total-time** conditions the risk set on event order and stratifies the
+  baseline hazard by recurrence number. The user must provide an explicit
+  positive-integer event-order variable. This is appropriate when the hazard of
+  a second or third event is scientifically distinct from the hazard of the
+  first event.
+
+Intervals must satisfy `stop > start` and cannot overlap within a subject. Event
+indicators are binary. Missingness is explicit: the default is to fail and the
+alternative `na_action = "omit"` removes incomplete model rows before fitting.
+Covariates may be numeric, logical, or factor variables.
+
+The returned `coxph` object carries a `healthdatascience` attribute with the
+model type, fitted rows, number of subjects, recurrent-event count, omitted-row
+count, column mappings, event-order variable where relevant, and covariate list.
+`tidy_recurrent_events()` returns Wald coefficient summaries, robust standard
+errors, hazard ratios, and confidence intervals.
+
+Andersen-Gill and PWP answer different questions. Andersen-Gill estimates a
+common multiplicative effect across recurrent events under a common baseline
+process. PWP total-time compares subjects within the same event-order stratum and
+therefore conditions interpretation on previous recurrence history. The choice
+between them should be made from the scientific risk-set definition rather than
+by fit statistics alone.
+
 ## Bootstrap Confidence Intervals
 
 Functions such as `bootstrap_ci()` draw repeated samples with replacement to
