@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 - Added `tidy_competing_risks()` for interpretable Fine-Gray coefficient tables with Wald confidence intervals.
 - Added recurrent-event Cox modelling with Andersen-Gill and PWP total-time risk-set definitions.
 - Added `tidy_recurrent_events()` for robust Wald summaries and hazard-ratio confidence intervals.
+- Added validated multi-state transition structures and transition-specific cause-specific Cox models.
+- Added `tidy_multistate_cox()` for transition-level robust Wald summaries.
+- Added nonparametric Aalen-Johansen state-occupation probabilities.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
