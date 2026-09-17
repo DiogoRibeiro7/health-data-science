@@ -87,6 +87,7 @@ Suggests:
     BMA,
     rstanarm,
     bayesplot,
-    lme4
+    lme4,
+    did
 Config/testthat/edition: 3
 VignetteBuilder: knitr
