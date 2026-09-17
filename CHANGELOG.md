@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file.
 - Added validated multi-state transition structures and transition-specific cause-specific Cox models.
 - Added `tidy_multistate_cox()` for transition-level robust Wald summaries.
 - Added nonparametric Aalen-Johansen state-occupation probabilities.
+- Added longitudinal Gaussian mixed-effects modelling with random-intercept and random-slope structures.
+- Added `tidy_longitudinal_mixed()` for fixed-effect Wald summaries without implicit denominator-df approximations.
+- Added `longitudinal_variance_components()` for random-effect and residual variance summaries.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
