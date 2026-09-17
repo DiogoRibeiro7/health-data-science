@@ -29,6 +29,8 @@ All notable changes to this project will be documented in this file.
 - Added explicit sharp regression-discontinuity modelling with bandwidth, kernel, and local-polynomial controls.
 - Added RD covariate-continuity and running-variable density diagnostics.
 - Added `tidy_regression_discontinuity()` for transparent local-effect inference at the cutoff.
+- Added `rd_bandwidth_sensitivity()` for prespecified local-bandwidth robustness grids.
+- Added `rd_placebo_cutoffs()` for prespecified placebo-threshold diagnostics.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
