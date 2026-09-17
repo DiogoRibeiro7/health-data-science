@@ -78,6 +78,7 @@ Suggests:
     AER,
     fixest,
     rdrobust,
+    rddensity,
     cmprsk,
     ranger,
     xgboost,
