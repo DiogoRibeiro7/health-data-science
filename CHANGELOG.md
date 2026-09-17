@@ -17,6 +17,9 @@ All notable changes to this project will be documented in this file.
 - Added delta-adjusted pattern-mixture sensitivity analysis for originally missing continuous outcomes.
 - Added subgroup-specific delta adjustment and Rubin-rule pooling diagnostics.
 - Added `find_delta_tipping_point()` for explicit grid-based tipping-point analysis.
+- Added explicit propensity-score designs for ATE, ATT, and overlap-population estimands.
+- Added propensity-score overlap, effective-sample-size, and standardized-mean-difference balance diagnostics.
+- Added weighted marginal outcome contrasts with fixed-weight Wald inference.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
