@@ -11,6 +11,8 @@ All notable changes to this project will be documented in this file.
 - Kept coverage enforcement as a separate release-version check with an 80% minimum.
 - Removed the placeholder deployment job until a real container registry and release process are configured.
 - Replaced the obsolete next-steps checklist with a statistical roadmap through version 1.0.0.
+- Restored `tests/` to source-package builds so `R CMD check` exercises the package test suite.
+- Declared optional dependencies used by advanced statistical methods in `Suggests`.
 
 ## [0.1.0]
 
