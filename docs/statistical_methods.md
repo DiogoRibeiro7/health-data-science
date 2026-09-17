@@ -165,6 +165,38 @@ REML is the default for parameter estimation. ML is available when comparing
 models with different fixed-effect structures; REML likelihoods should not be
 used for such fixed-effect likelihood-ratio comparisons.
 
+## Missing-Data Sensitivity Analysis
+
+`run_delta_sensitivity()` implements a delta-adjusted pattern-mixture sensitivity
+analysis for a numeric outcome. It first creates multiple imputations under a
+missing-at-random assumption using `mice`. For each sensitivity value `delta`,
+only outcome values that were **missing in the original data** are shifted by
+that amount before the substantive analysis is re-fitted.
+
+The delta parameter is expressed on the original outcome scale. A negative delta
+assumes that unobserved outcomes are systematically lower than their MAR
+imputations; a positive delta assumes the opposite. The function may also target
+missing outcomes in one subgroup only, which is useful when nonresponse is
+believed to differ by treatment arm or another prespecified group.
+
+The analyst supplies the substantive analysis as a function returning one scalar
+`estimate` and its `std_error`. Results from each completed data set are pooled
+with Rubin's rules, including within-imputation variance, between-imputation
+variance, total variance, degrees of freedom, confidence intervals, p-values,
+and fraction of missing information.
+
+This procedure does **not** estimate or identify an MNAR mechanism from the data.
+The delta values are sensitivity assumptions supplied by the analyst. Their
+range should therefore be justified scientifically or clinically rather than
+chosen to obtain a desired conclusion.
+
+`find_delta_tipping_point()` compares the evaluated delta scenarios with the
+`delta = 0` MAR analysis. It can detect the nearest evaluated delta at which a
+confidence interval changes from excluding to including the null, or at which
+the point estimate changes side relative to a specified null value. The result
+is explicitly a **grid-based tipping point**: no interpolation is made between
+unobserved delta values.
+
 ## Bootstrap Confidence Intervals
 
 Functions such as `bootstrap_ci()` draw repeated samples with replacement to
