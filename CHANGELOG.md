@@ -22,6 +22,8 @@ All notable changes to this project will be documented in this file.
 - Added weighted marginal outcome contrasts with fixed-weight Wald inference.
 - Added doubly robust ATE and ATT estimation with augmented inverse-probability scores.
 - Added influence-function Wald inference for doubly robust treatment-effect estimates.
+- Added explicit two-stage least-squares IV models with first-stage partial F and partial R-squared diagnostics.
+- Added `instrumental_variable_diagnostics()` and `tidy_instrumental_variable()` with weak-instrument and overidentification reporting.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
