@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file.
 - Added explicit propensity-score designs for ATE, ATT, and overlap-population estimands.
 - Added propensity-score overlap, effective-sample-size, and standardized-mean-difference balance diagnostics.
 - Added weighted marginal outcome contrasts with fixed-weight Wald inference.
+- Added doubly robust ATE and ATT estimation with augmented inverse-probability scores.
+- Added influence-function Wald inference for doubly robust treatment-effect estimates.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
