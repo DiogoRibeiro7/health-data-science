@@ -16,6 +16,18 @@ A narrow bandwidth reduces reliance on extrapolation but can increase variance. 
 
 High-order global polynomials are not used by this API. The intended design is local polynomial estimation around the threshold.
 
+`rd_bandwidth_sensitivity()` refits the same RD specification over a prespecified vector of common left/right bandwidths. It reports the robust-bias-corrected estimate, uncertainty, and the number of observations contributing on each side of the cutoff for every bandwidth. The function deliberately does not select a preferred bandwidth from the sensitivity grid.
+
+Stability across nearby, scientifically reasonable bandwidths is reassuring, while large changes can indicate that the estimated discontinuity depends strongly on how local the comparison is. Neither pattern proves or disproves the identification assumptions.
+
+## Placebo cutoffs
+
+`rd_placebo_cutoffs()` applies the same local-polynomial design at prespecified thresholds where no true treatment discontinuity is expected. A common bandwidth may be supplied to make the local comparison more comparable across placebo locations, or bandwidth selection may be repeated separately at each placebo cutoff.
+
+Placebo thresholds must be specified before examining the results and cannot equal the actual treatment cutoff. Repeatedly searching the running-variable support and reporting only null or convenient placebo results would turn a diagnostic into specification mining.
+
+Large placebo discontinuities can reveal smoothness problems, omitted institutional thresholds, or local functional-form instability. An isolated significant placebo result is not an automatic falsification rule, particularly when many placebo locations are evaluated. Likewise, null placebo estimates do not validate the true-cutoff design.
+
 ## Covariate continuity
 
 `rd_covariate_balance()` fits the same local RD specification to prespecified numeric baseline covariates. Large discontinuities can indicate that units immediately above and below the cutoff are not locally comparable.
