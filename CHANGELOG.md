@@ -4,6 +4,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Added
+- Added `tidy_competing_risks()` for interpretable Fine-Gray coefficient tables with Wald confidence intervals.
+
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
 - Standardised the `testthat` package test entry point and enabled testthat edition 3.
@@ -13,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Replaced the obsolete next-steps checklist with a statistical roadmap through version 1.0.0.
 - Restored `tests/` to source-package builds so `R CMD check` exercises the package test suite.
 - Declared optional dependencies used by advanced statistical methods in `Suggests`.
+- Hardened `fit_competing_risks()` with explicit event and censoring codes, input validation, missing-value policy, and fitted-sample metadata.
 
 ## [0.1.0]
 
