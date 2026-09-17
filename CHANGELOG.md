@@ -34,6 +34,8 @@ All notable changes to this project will be documented in this file.
 - Added a causal-API migration guide covering propensity, IV, DiD, and RD workflows.
 - Added API-integrity tests that reject duplicate export directives and protect historical ICER argument aliases.
 - Added structural tests that keep advanced statistical methods split into focused source modules.
+- Added `tidy_cox_model()` as a common fixed-effect summary for advanced Cox models.
+- Added dedicated documentation for time-varying, frailty, and landmark Cox analyses.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -50,6 +52,9 @@ All notable changes to this project will be documented in this file.
 - Canonicalised `cost_effectiveness()` so package load order no longer determines its public argument names; both historical naming conventions remain accepted.
 - Split the former `advanced_statistics.R` monolith into latent-model, survival, statistical-learning, clinical-analytics, and Bayesian modules without changing the public function names.
 - Removed shadowed `cost_effectiveness()` definitions from advanced statistics and population-health sources; the canonical API now has one executable definition.
+- Hardened `fit_time_varying_cox()` with explicit `tt()` validation, time-transform handling, tie/missingness controls, and fitted-sample metadata.
+- Hardened `fit_frailty_cox()` with explicit `frailty()` validation, tie/missingness controls, and fitted-sample metadata.
+- Hardened `landmark_cox()` with an explicit landmark-time column, landmark risk-set validation, optional time-origin reset, and rejection of counting-process responses.
 
 ## [0.1.0]
 
