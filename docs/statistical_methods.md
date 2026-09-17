@@ -197,6 +197,50 @@ the point estimate changes side relative to a specified null value. The result
 is explicitly a **grid-based tipping point**: no interpolation is made between
 unobserved delta values.
 
+## Propensity-Score Designs
+
+`fit_propensity_design()` separates the propensity-score design stage from the
+outcome analysis. A logistic treatment model is fitted using baseline covariates,
+then weights are constructed for an explicitly chosen target population:
+
+* **ATE** uses inverse-probability weights to target the average treatment effect
+  in the combined study population.
+* **ATT** keeps treated subjects at weight one and reweights controls toward the
+  covariate distribution of the treated population.
+* **ATO** uses overlap weights, targeting subjects with the greatest empirical
+  treatment equipoise. These weights are bounded and naturally downweight
+  observations with extreme propensity scores.
+
+The fitted design stores propensity scores, weights, the model matrix used for
+balance diagnostics, effective sample sizes, common-support limits, extreme-score
+counts, and the maximum weight. Extreme scores trigger a warning but are not
+silently trimmed because trimming changes the target population.
+
+`propensity_overlap()` reports treated and control propensity-score ranges,
+common support, observations outside empirical support, effective sample sizes,
+and weight extremity. These are design diagnostics rather than a declaration
+that positivity holds in the target population.
+
+`propensity_balance()` reports standardized mean differences before and after
+weighting. Factors are expanded through the propensity model matrix. The same
+unweighted pooled standard deviation is used as denominator before and after
+weighting so changes in balance are directly comparable. A threshold such as
+`|SMD| <= 0.1` is descriptive and should not replace substantive assessment of
+important confounders.
+
+`estimate_propensity_effect()` estimates a weighted marginal mean difference
+for a numeric outcome. For binary `0/1` outcomes the same contrast is a marginal
+risk difference. The standard error currently treats estimated propensity
+weights as fixed, so it does **not** include uncertainty from propensity-model
+estimation. Bootstrap or influence-function based inference is a separate
+extension and should not be implied by this fixed-weight calculation.
+
+These propensity procedures rely on the usual causal identification conditions:
+consistency, conditional exchangeability given the included baseline covariates,
+and positivity for the chosen target population. Balance after weighting can
+support the design diagnostics, but it cannot establish absence of unmeasured
+confounding.
+
 ## Bootstrap Confidence Intervals
 
 Functions such as `bootstrap_ci()` draw repeated samples with replacement to
