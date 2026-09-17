@@ -36,6 +36,10 @@ All notable changes to this project will be documented in this file.
 - Added structural tests that keep advanced statistical methods split into focused source modules.
 - Added `tidy_cox_model()` as a common fixed-effect summary for advanced Cox models.
 - Added dedicated documentation for time-varying, frailty, and landmark Cox analyses.
+- Added `pharmacovigilance_signal()` with PRR, ROR, approximate confidence intervals, zero-cell correction, chi-square diagnostics, and a descriptive Evans-style screening flag.
+- Added structured clinical prediction rules with `fit_clinical_prediction_rule()`, `tidy_clinical_prediction_rule()`, and `clinical_prediction_performance()`.
+- Added apparent clinical-prediction performance summaries including AUC, Brier score, mean calibration error, sensitivity, specificity, PPV, and NPV.
+- Added dedicated clinical-analytics documentation covering pharmacovigilance and prediction-model interpretation.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -55,6 +59,8 @@ All notable changes to this project will be documented in this file.
 - Hardened `fit_time_varying_cox()` with explicit `tt()` validation, time-transform handling, tie/missingness controls, and fitted-sample metadata.
 - Hardened `fit_frailty_cox()` with explicit `frailty()` validation, tie/missingness controls, and fitted-sample metadata.
 - Hardened `landmark_cox()` with an explicit landmark-time column, landmark risk-set validation, optional time-origin reset, and rejection of counting-process responses.
+- Hardened `detect_pharmacovigilance()` with explicit 2 x 2 count validation while preserving its scalar PRR return type.
+- Reimplemented `develop_clinical_prediction_rule()` on top of the structured prediction-rule API while preserving its historical coefficient-vector return type.
 
 ## [0.1.0]
 
