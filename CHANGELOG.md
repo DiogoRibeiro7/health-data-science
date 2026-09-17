@@ -40,6 +40,8 @@ All notable changes to this project will be documented in this file.
 - Added structured clinical prediction rules with `fit_clinical_prediction_rule()`, `tidy_clinical_prediction_rule()`, and `clinical_prediction_performance()`.
 - Added apparent clinical-prediction performance summaries including AUC, Brier score, mean calibration error, sensitivity, specificity, PPV, and NPV.
 - Added dedicated clinical-analytics documentation covering pharmacovigilance and prediction-model interpretation.
+- Added explicit pairwise biomarker analysis with comparison metadata, multiplicity control, fold-change thresholds, tidy results, and discovery summaries.
+- Added dedicated biomarker-analysis documentation.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -61,6 +63,7 @@ All notable changes to this project will be documented in this file.
 - Hardened `landmark_cox()` with an explicit landmark-time column, landmark risk-set validation, optional time-origin reset, and rejection of counting-process responses.
 - Hardened `detect_pharmacovigilance()` with explicit 2 x 2 count validation while preserving its scalar PRR return type.
 - Reimplemented `develop_clinical_prediction_rule()` on top of the structured prediction-rule API while preserving its historical coefficient-vector return type.
+- Hardened biomarker discovery with explicit feature/sample validation and a structured pairwise limma workflow while preserving the legacy `topTable()` helper.
 
 ## [0.1.0]
 
