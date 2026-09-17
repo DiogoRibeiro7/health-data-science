@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - Added `tidy_competing_risks()` for interpretable Fine-Gray coefficient tables with Wald confidence intervals.
+- Added recurrent-event Cox modelling with Andersen-Gill and PWP total-time risk-set definitions.
+- Added `tidy_recurrent_events()` for robust Wald summaries and hazard-ratio confidence intervals.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
