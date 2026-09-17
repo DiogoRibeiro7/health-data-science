@@ -14,6 +14,9 @@ All notable changes to this project will be documented in this file.
 - Added longitudinal Gaussian mixed-effects modelling with random-intercept and random-slope structures.
 - Added `tidy_longitudinal_mixed()` for fixed-effect Wald summaries without implicit denominator-df approximations.
 - Added `longitudinal_variance_components()` for random-effect and residual variance summaries.
+- Added delta-adjusted pattern-mixture sensitivity analysis for originally missing continuous outcomes.
+- Added subgroup-specific delta adjustment and Rubin-rule pooling diagnostics.
+- Added `find_delta_tipping_point()` for explicit grid-based tipping-point analysis.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
