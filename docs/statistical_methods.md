@@ -241,6 +241,29 @@ and positivity for the chosen target population. Balance after weighting can
 support the design diagnostics, but it cannot establish absence of unmeasured
 confounding.
 
+## Doubly Robust Estimation
+
+`estimate_doubly_robust()` builds on an explicit propensity-score design and
+supports ATE and ATT targets. For ATE it uses the standard augmented
+inverse-probability weighted (AIPW) score, combining estimated propensity scores
+with separate treated and control outcome regressions. For ATT it uses an
+augmentation targeted specifically to the treated population rather than
+reusing the ATE score with different weights.
+
+The function reports an empirical influence-function standard error and Wald
+interval. The nuisance models are currently parametric and fitted on the same
+sample: logistic regression for treatment and separate linear outcome models by
+treatment arm. This implementation therefore does **not** provide cross-fitting
+or machine-learning nuisance estimation.
+
+Double robustness is not a substitute for causal identification. Under the
+usual regularity conditions, the estimator can remain consistent if either the
+propensity model or the relevant outcome regression is correctly specified, but
+it still requires consistency, conditional exchangeability, and positivity.
+Neither double robustness nor balance diagnostics address unmeasured
+confounding. ATO is deliberately not routed through the same function because
+overlap-population augmentation has a different estimating equation.
+
 ## Bootstrap Confidence Intervals
 
 Functions such as `bootstrap_ci()` draw repeated samples with replacement to
