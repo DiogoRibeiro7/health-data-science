@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file.
 - Added `rd_placebo_cutoffs()` for prespecified placebo-threshold diagnostics.
 - Added a causal-API migration guide covering propensity, IV, DiD, and RD workflows.
 - Added API-integrity tests that reject duplicate export directives and protect historical ICER argument aliases.
+- Added structural tests that keep advanced statistical methods split into focused source modules.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -47,6 +48,8 @@ All notable changes to this project will be documented in this file.
 - Deprecated the legacy causal wrappers `estimate_causal_effect()`, `match_cohort()`, `propensity_stratification()`, `instrumental_variable()`, `difference_in_differences()`, and `regression_discontinuity()` while preserving their historical behavior during the migration window.
 - Removed duplicate `NAMESPACE` exports for `init_logging()`, `collect_diagnostics()`, and `cost_effectiveness()`.
 - Canonicalised `cost_effectiveness()` so package load order no longer determines its public argument names; both historical naming conventions remain accepted.
+- Split the former `advanced_statistics.R` monolith into latent-model, survival, statistical-learning, clinical-analytics, and Bayesian modules without changing the public function names.
+- Removed shadowed `cost_effectiveness()` definitions from advanced statistics and population-health sources; the canonical API now has one executable definition.
 
 ## [0.1.0]
 
