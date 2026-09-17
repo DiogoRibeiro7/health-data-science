@@ -70,6 +70,22 @@ Suggests:
     RPostgres,
     RMariaDB,
     odbc,
-    ROracle
+    ROracle,
+    lmest,
+    flexmix,
+    BayesLCA,
+    randomLCA,
+    AER,
+    fixest,
+    rdrobust,
+    cmprsk,
+    ranger,
+    xgboost,
+    nnet,
+    limma,
+    rstan,
+    BMA,
+    rstanarm,
+    bayesplot
 Config/testthat/edition: 3
 VignetteBuilder: knitr
