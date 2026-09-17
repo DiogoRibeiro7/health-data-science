@@ -90,9 +90,43 @@ therefore conditions interpretation on previous recurrence history. The choice
 between them should be made from the scientific risk-set definition rather than
 by fit statistics alone.
 
+## Multi-State Models
+
+Multi-state analysis represents disease or care trajectories as transitions
+between discrete states. `validate_transition_structure()` defines the directed
+graph of allowed state changes and rejects self-transitions and duplicate edges.
+Observed event rows are checked against that graph, and contiguous subject
+intervals must preserve the previous state history.
+
+`fit_multistate_cox()` fits one **cause-specific Cox model per allowed
+transition**. For a transition such as `A -> B`, subjects contribute risk time
+while they occupy state `A`; observed exits from `A` to another state are treated
+as competing events and are censored at that exit time for the `A -> B` hazard.
+Subject-level clustering is used for robust covariance estimation. The returned
+`hds_multistate_cox` object records transition-specific event counts and the set
+of transitions that were estimable from the observed data.
+
+`tidy_multistate_cox()` reports transition identifiers, robust standard errors,
+Wald tests, and **cause-specific hazard ratios**. These coefficients describe
+instantaneous transition hazards conditional on occupying the origin state. They
+should not be interpreted as direct effects on state probabilities.
+
+`estimate_state_occupation()` estimates **Aalen-Johansen state-occupation
+probabilities** nonparametrically from the observed counting-process data. It
+constructs empirical transition-hazard increments at event times and accumulates
+them through the product-integral transition matrix. The resulting probabilities
+answer a different question from the Cox models: they describe the estimated
+probability of occupying each state over time, not a covariate effect on a
+transition hazard.
+
+For the Aalen-Johansen estimator, every subject must have exactly one observed
+state at the chosen origin time. The implementation returns point estimates only;
+confidence bands and covariate-adjusted transition probabilities are separate
+extensions rather than being silently inferred from the transition-specific Cox
+models.
+
 ## Bootstrap Confidence Intervals
 
 Functions such as `bootstrap_ci()` draw repeated samples with replacement to
 approximate confidence intervals. Results depend on the number of resamples and
 the representativeness of the original sample.
-
