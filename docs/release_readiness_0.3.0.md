@@ -25,8 +25,6 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 - Documentation index and public API inventory added.
 - Removed the stale incomplete `renv` snapshot and unified local, CI, and container dependency installation around `DESCRIPTION`.
 
-## Blocking correctness audits
-
 ## Release-engineering gates
 
 A 0.3.0 tag should be created only after all of the following are true:
