@@ -396,7 +396,7 @@ tidy_bayesian_posterior <- function(
   probs <- c(alpha / 2, 0.5, 1 - alpha / 2)
   args <- list(object = stanfit, probs = probs)
   if (!is.null(pars)) args$pars <- pars
-  summary_matrix <- do.call(rstan::summary, args)$summary
+  summary_matrix <- do.call(base::summary, args)$summary
 
   if (!include_lp && "lp__" %in% rownames(summary_matrix)) {
     summary_matrix <- summary_matrix[rownames(summary_matrix) != "lp__", , drop = FALSE]
@@ -444,7 +444,7 @@ bayesian_sampling_diagnostics <- function(
 
   ensure_packages("rstan")
   stanfit <- .hds_stanfit(model)
-  summary_matrix <- rstan::summary(stanfit)$summary
+  summary_matrix <- base::summary(stanfit)$summary
   keep <- rownames(summary_matrix) != "lp__"
   parameter_table <- data.frame(
     parameter = rownames(summary_matrix)[keep],
