@@ -223,6 +223,6 @@ MIT. See [LICENSE](LICENSE).
 
 ## Author
 
-**Diogo Ribeiro**  
-Faculty of Media Arts and Design, Technical University of Porto  
+**Diogo Ribeiro**
+Faculty of Media Arts and Design, Technical University of Porto
 ORCID: https://orcid.org/0009-0001-2022-7072
