@@ -59,7 +59,7 @@ Rscript scripts/install_r_deps.R --all --dev
 
 Pull requests perform syntax and diff checks only.
 
-Pushes to `main` validate that the package builds, installs, and loads with the hard dependency set. Optional examples, vignettes, tests, compatibility checks, coverage, Docker builds, and vulnerability scanning belong to the separate Release Gate workflow.
+Pushes to `main` validate that the package builds, installs, and loads with the hard dependency set. The Release Gate checks the same core boundary on current and previous R, then installs the full optional surface once on current R for lint, full package checks, tests/examples/vignettes, and coverage before Docker and vulnerability scanning.
 
 This distinction is deliberate: a package should not require every possible statistical or operational engine merely to load its core namespace.
 
