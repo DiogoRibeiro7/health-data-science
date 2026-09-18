@@ -7,12 +7,37 @@ on:
       - 'v*'
 
 jobs:
-  full-check:
+  compatibility-core:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         r-version: [release, oldrel-1]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+          r-version: ${{ matrix.r-version }}
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          dependencies: '"hard"'
+
+      - name: Build core package
+        run: R CMD build --no-build-vignettes .
+
+      - name: Install core package
+        run: R CMD INSTALL healthdatascience_*.tar.gz
+
+      - name: Load core package
+        run: Rscript -e 'library(healthdatascience); packageVersion("healthdatascience")'
+
+  full-check:
+    runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -25,7 +50,7 @@ jobs:
       - uses: r-lib/actions/setup-r@v2
         with:
           use-public-rspm: true
-          r-version: ${{ matrix.r-version }}
+          r-version: release
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
@@ -53,7 +78,6 @@ jobs:
           R CMD check healthdatascience_*.tar.gz --no-manual --as-cran
 
       - name: Enforce test coverage
-        if: matrix.r-version == 'release'
         run: >-
           Rscript -e 'cov <- covr::package_coverage();
             print(cov);
@@ -63,7 +87,8 @@ jobs:
 
   security:
     runs-on: ubuntu-latest
-    needs: full-check
+    needs: [compatibility-core, full-check]
+
     steps:
       - uses: actions/checkout@v4
 
