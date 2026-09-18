@@ -9,6 +9,10 @@
 # Package-local environment for session state
 .hds_log_env <- new.env(parent = emptyenv())
 
+.hds_or <- function(x, y) {
+  if (is.null(x)) y else x
+}
+
 #' Initialize structured logging
 #'
 #' Sets up a JSON-based logging framework with configurable thresholds and
@@ -33,18 +37,16 @@
 #' log_info("Logging configured")
 #' @export
 init_logging <- function(level = NULL) {
-  ensure_packages(c("jsonlite", "yaml", "logger"))
-
   cfg_path <- file.path("config", "logging.yaml")
   cfg <- if (file.exists(cfg_path)) yaml::read_yaml(cfg_path) else list()
 
-  lvl <- toupper(level %||% Sys.getenv("LOG_LEVEL", cfg$level %||% "INFO"))
+  lvl <- toupper(.hds_or(level, Sys.getenv("LOG_LEVEL", .hds_or(cfg$level, "INFO"))))
 
   log_file <- cfg$file
-  rotate_size <- cfg$rotate_size %||% (5 * 1024 ^ 2) # 5 MB default
-  max_backups <- cfg$max_backups %||% 5
+  rotate_size <- .hds_or(cfg$rotate_size, 5 * 1024 ^ 2) # 5 MB default
+  max_backups <- .hds_or(cfg$max_backups, 5)
   remote_url <- cfg$remote_url
-  console <- isTRUE(cfg$console %||% TRUE)
+  console <- isTRUE(.hds_or(cfg$console, TRUE))
 
   app <- list()
   if (!is.null(log_file)) {
@@ -106,11 +108,11 @@ layout_json <- function(level, msg, namespace, .logcall, .topcall, .topenv, ...)
   rec <- list(
     time = format(Sys.time(), "%Y-%m-%dT%H:%M:%SZ", tz = "UTC"),
     level = level,
-    component = namespace %||% "general",
+    component = .hds_or(namespace, "general"),
     message = msg,
     session = .hds_log_env$session_id,
     caller = as.character(sys.call(-1)[[1]]),
-    user = .hds_log_env$user_id %||% NA
+    user = .hds_or(.hds_log_env$user_id, NA)
   )
   jsonlite::toJSON(rec, auto_unbox = TRUE)
 }
