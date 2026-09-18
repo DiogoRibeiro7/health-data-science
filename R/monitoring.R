@@ -2,9 +2,149 @@
 # File: monitoring.R
 # Purpose: Monitoring, tracing, and health check utilities for the health data
 #   science toolkit.
-# Author: Diogo Ribeiro (ESMAD - Instituto Politécnico do Porto)
-# Last Modified: 2025-04-??
 # ------------------------------------------------------------------------------
+
+.hds_metric_registry <- function() {
+  registry <- new.env(parent = emptyenv())
+  registry$metrics <- list()
+  class(registry) <- "Registry"
+  registry
+}
+
+.hds_metric_key <- function(labels, label_names) {
+  if (length(label_names) == 0L) return("")
+  values <- labels[label_names]
+  if (length(values) != length(label_names) || any(vapply(values, is.null, logical(1)))) {
+    stop(
+      paste("Metric labels required:", paste(label_names, collapse = ", ")),
+      call. = FALSE
+    )
+  }
+  paste(
+    paste0(label_names, "=", vapply(values, as.character, character(1))),
+    collapse = ","
+  )
+}
+
+.hds_metric <- function(type, name, help, labels = character(),
+                        registry = NULL, buckets = NULL) {
+  metric <- new.env(parent = emptyenv())
+  metric$type <- type
+  metric$name <- name
+  metric$help <- help
+  metric$label_names <- labels
+  metric$buckets <- buckets
+  metric$samples <- list()
+
+  metric$inc <- function(value = 1, labels = list()) {
+    if (!is.numeric(value) || length(value) != 1L || !is.finite(value) || value < 0) {
+      stop("Counter increments must be one non-negative finite number", call. = FALSE)
+    }
+    key <- .hds_metric_key(labels, metric$label_names)
+    current <- metric$samples[[key]]
+    if (is.null(current)) current <- 0
+    metric$samples[[key]] <- current + value
+    invisible(NULL)
+  }
+
+  metric$set <- function(value, labels = list()) {
+    if (!is.numeric(value) || length(value) != 1L || !is.finite(value)) {
+      stop("Gauge values must be one finite number", call. = FALSE)
+    }
+    key <- .hds_metric_key(labels, metric$label_names)
+    metric$samples[[key]] <- value
+    invisible(NULL)
+  }
+
+  metric$observe <- function(value, labels = list()) {
+    if (!is.numeric(value) || length(value) != 1L || !is.finite(value)) {
+      stop("Histogram observations must be one finite number", call. = FALSE)
+    }
+    key <- .hds_metric_key(labels, metric$label_names)
+    values <- metric$samples[[key]]
+    metric$samples[[key]] <- c(values, value)
+    invisible(NULL)
+  }
+
+  metric$get <- function() {
+    values <- if (length(metric$samples) == 0L) numeric() else {
+      if (identical(metric$type, "Histogram")) {
+        vapply(metric$samples, function(x) sum(x), numeric(1))
+      } else {
+        unlist(metric$samples, use.names = FALSE)
+      }
+    }
+    list(samples = data.frame(value = values))
+  }
+
+  class(metric) <- type
+  if (!is.null(registry)) {
+    registry$metrics[[name]] <- metric
+  }
+  metric
+}
+
+.hds_prometheus_labels <- function(key) {
+  if (!nzchar(key)) return("")
+  pairs <- strsplit(key, ",", fixed = TRUE)[[1L]]
+  parsed <- strsplit(pairs, "=", fixed = TRUE)
+  body <- paste(
+    vapply(
+      parsed,
+      function(x) sprintf('%s="%s"', x[[1L]], x[[2L]]),
+      character(1)
+    ),
+    collapse = ","
+  )
+  paste0("{", body, "}")
+}
+
+.hds_render_metrics <- function(registry) {
+  if (!inherits(registry, "Registry")) {
+    stop("Invalid metrics registry", call. = FALSE)
+  }
+
+  lines <- character()
+
+  for (metric in registry$metrics) {
+    lines <- c(
+      lines,
+      paste0("# HELP ", metric$name, " ", metric$help),
+      paste0("# TYPE ", metric$name, " ", tolower(metric$type))
+    )
+
+    if (length(metric$samples) == 0L) {
+      next
+    }
+
+    for (key in names(metric$samples)) {
+      labels <- .hds_prometheus_labels(key)
+
+      if (identical(metric$type, "Histogram")) {
+        values <- metric$samples[[key]]
+        for (bucket in metric$buckets) {
+          count <- sum(values <= bucket)
+          lines <- c(
+            lines,
+            paste0(metric$name, "_bucket", labels, ' le="', bucket, '" ', count)
+          )
+        }
+        lines <- c(
+          lines,
+          paste0(metric$name, "_count", labels, " ", length(values)),
+          paste0(metric$name, "_sum", labels, " ", sum(values))
+        )
+      } else {
+        lines <- c(
+          lines,
+          paste0(metric$name, labels, " ", metric$samples[[key]])
+        )
+      }
+    }
+  }
+
+  paste(lines, collapse = "\n")
+}
 
 #' Initialize monitoring metrics
 #'
@@ -12,7 +152,7 @@
 #' request throughput, latency, errors, and resource utilisation. Returns a list
 #' containing the registry and metric objects for further use.
 #'
-#' @param registry Optional existing `prometheus::Registry` object.
+#' @param registry Optional existing registry returned by `init_monitoring()`.
 #'
 #' @return A list with the metrics registry and created metric objects.
 #' @examples
@@ -21,19 +161,21 @@
 #' }
 #' @export
 init_monitoring <- function(registry = NULL) {
-  if (!requireNamespace("prometheus", quietly = TRUE)) {
-    stop("prometheus package required for monitoring")
+  if (is.null(registry)) registry <- .hds_metric_registry()
+  if (!inherits(registry, "Registry")) {
+    stop("`registry` must be a Registry object", call. = FALSE)
   }
-  if (is.null(registry)) registry <- prometheus::Registry$new()
 
-  http_requests <- prometheus::Counter$new(
+  http_requests <- .hds_metric(
+    type = "Counter",
     name = "http_requests_total",
     help = "Total HTTP requests",
     labels = c("method", "endpoint"),
     registry = registry
   )
 
-  request_latency <- prometheus::Histogram$new(
+  request_latency <- .hds_metric(
+    type = "Histogram",
     name = "http_request_latency_seconds",
     help = "Request latency",
     buckets = c(0.1, 0.3, 1, 3, 5),
@@ -41,20 +183,23 @@ init_monitoring <- function(registry = NULL) {
     registry = registry
   )
 
-  errors_total <- prometheus::Counter$new(
+  errors_total <- .hds_metric(
+    type = "Counter",
     name = "http_errors_total",
     help = "Total HTTP errors",
     labels = c("endpoint"),
     registry = registry
   )
 
-  cpu_usage <- prometheus::Gauge$new(
+  cpu_usage <- .hds_metric(
+    type = "Gauge",
     name = "process_cpu_seconds_total",
     help = "Total user and system CPU time consumed",
     registry = registry
   )
 
-  memory_usage <- prometheus::Gauge$new(
+  memory_usage <- .hds_metric(
+    type = "Gauge",
     name = "process_memory_bytes",
     help = "Approximate memory usage in bytes",
     registry = registry
@@ -72,11 +217,9 @@ init_monitoring <- function(registry = NULL) {
 
 #' Record a custom metric value
 #'
-#' Convenience wrapper to increment counters or observe values for histograms and
-#' gauges. Accepts a Prometheus metric object and updates it accordingly.
+#' Convenience wrapper to increment counters or record gauge/histogram values.
 #'
-#' @param metric A Prometheus metric object such as a `Counter`, `Gauge`, or
-#'   `Histogram`.
+#' @param metric A `Counter`, `Gauge`, or `Histogram` returned by `init_monitoring()`.
 #' @param value Numeric value to record. For counters this increments the count;
 #'   for gauges and histograms it records the observation.
 #' @param labels Optional named list of labels to attach to the metric
@@ -92,8 +235,12 @@ init_monitoring <- function(registry = NULL) {
 record_metric <- function(metric, value = 1, labels = list()) {
   if (inherits(metric, "Counter")) {
     metric$inc(value, labels = labels)
-  } else if (inherits(metric, c("Gauge", "Histogram"))) {
+  } else if (inherits(metric, "Gauge")) {
+    metric$set(value, labels = labels)
+  } else if (inherits(metric, "Histogram")) {
     metric$observe(value, labels = labels)
+  } else {
+    stop("Unsupported metric object", call. = FALSE)
   }
   invisible(NULL)
 }
@@ -208,7 +355,7 @@ send_alert <- function(channel, message, config = list()) {
 
 #' Summarise metrics for dashboards
 #'
-#' Converts selected Prometheus metrics into a simple data frame for use in
+#' Converts selected monitoring metrics into a simple data frame for use in
 #' dashboards or status pages. Only counter values are summarised.
 #'
 #' @param metrics Metric list returned by `init_monitoring()`.
