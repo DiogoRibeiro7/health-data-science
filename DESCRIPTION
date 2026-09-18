@@ -58,8 +58,6 @@ Imports:
     yaml,
     uuid,
     jsonlite,
-    prometheus,
-    opentelemetry,
     sf,
     spdep,
     survey,
@@ -71,7 +69,7 @@ Suggests:
     RMariaDB,
     odbc,
     ROracle,
-    lmest,
+    LMest,
     flexmix,
     BayesLCA,
     randomLCA,
@@ -88,6 +86,7 @@ Suggests:
     BMA,
     rstanarm,
     bayesplot,
+    otel,
     lme4,
     did
 Config/testthat/edition: 3
