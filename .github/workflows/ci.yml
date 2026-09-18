@@ -31,8 +31,16 @@ jobs:
       - name: Restore R packages
         run: Rscript -e 'renv::restore(prompt = FALSE)'
 
+      - name: Install package dependencies
+        run: |
+          Rscript -e 'install.packages("remotes")'
+          Rscript -e 'remotes::install_deps(
+            dependencies = c("Depends", "Imports", "LinkingTo"),
+            upgrade = "never"
+          )'
+
       - name: Install CI tooling
-        run: Rscript -e 'install.packages(c("lintr", "covr"))'
+        run: Rscript -e 'install.packages(c("testthat", "lintr", "covr"))'
 
       - name: Install pre-commit
         run: python -m pip install pre-commit
