@@ -197,7 +197,7 @@ bayesian_model_averaging <- function(
   if (!is.logical(strict) || length(strict) != 1L || is.na(strict)) {
     stop("`strict` must be TRUE or FALSE", call. = FALSE)
   }
-  if (!is.numeric(odds_ratio) || length(odds_ratio) != 1L || !is.finite(odds_ratio) || odds_ratio <= 1) {
+  if (!is.numeric(odds_ratio) || length(odds_ratio) != 1L ||\n      !is.finite(odds_ratio) || odds_ratio <= 1) {
     stop("`odds_ratio` must be a finite number greater than 1", call. = FALSE)
   }
   max_col <- .hds_bayes_positive_integer(max_col, "max_col")
@@ -243,7 +243,7 @@ tidy_bayesian_model_average <- function(model) {
   condmean <- as.numeric(model$condpostmean)
   condsd <- as.numeric(model$condpostsd)
 
-  lengths <- c(length(inclusion), length(postmean), length(postsd), length(condmean), length(condsd))
+  lengths <- c(\n    length(inclusion),\n    length(postmean),\n    length(postsd),\n    length(condmean),\n    length(condsd)\n  )
   if (length(unique(lengths)) != 1L) {
     stop("The BMA object contains inconsistent coefficient summary lengths", call. = FALSE)
   }
