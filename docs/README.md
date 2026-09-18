@@ -1,6 +1,10 @@
 # Documentation
 
-The documentation is organised around statistical questions and package workflows.
+This is the detailed documentation hub for `healthdatascience`.
+
+The top-level README explains the project and its statistical philosophy. This
+section is where method assumptions, diagnostics, operational workflows, API
+details, and release information live.
 
 ## Statistical methods
 
@@ -18,24 +22,30 @@ The documentation is organised around statistical questions and package workflow
 - [Real-world evidence tools](rwe_tools.md)
 - [Causal API migration](causal_api_migration.md)
 
-## Package use and operations
+## Getting started
 
 - [Quickstart](quickstart.md)
 - [Data requirements](data_requirements.md)
+- [Troubleshooting](troubleshooting.md)
+- [Tutorials](tutorials/)
+
+## Engineering and operations
+
 - [Developer guide](developer_guide.md)
 - [Database and ETL](database_etl.md)
 - [Reporting](reporting.md)
 - [Performance](performance.md)
-- [Troubleshooting](troubleshooting.md)
 - [Security and compliance](security_compliance.md)
 - [Monitoring and observability](observability.md)
 - [Deployment and CI/CD](deployment_ci_cd.md)
 - [Backup and disaster recovery](backup_dr.md)
 
-## Release information
+## API and release information
 
 - [Public API inventory](api_inventory.md)
 - [0.3.0 release readiness](release_readiness_0.3.0.md)
 - [Roadmap to 1.0.0](../NEXT_STEPS.md)
 
-The 0.3.0 release candidate contains a broad exported surface. The API inventory is the source of truth for what is currently exported; the roadmap describes which parts are expected to harden further before 1.0.0.
+The API inventory is the source of truth for what is exported in the current
+release line. Method pages explain assumptions and interpretation; release
+documents describe what still needs to be validated before a version is tagged.

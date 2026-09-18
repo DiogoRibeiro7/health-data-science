@@ -1,208 +1,228 @@
 # Health Data Science
 
-This repository provides a health data science toolkit with reproducible,
-statistically explicit workflows for clinical, epidemiological, and real-world
-health data. The package includes modern survival, longitudinal, missing-data
-sensitivity, causal-inference, latent-variable, Bayesian, biomarker, prediction,
-and population-health methods alongside the original NCDB analysis workflows.
+[![CI](https://github.com/DiogoRibeiro7/health-data-science/actions/workflows/ci.yml/badge.svg)](https://github.com/DiogoRibeiro7/health-data-science/actions/workflows/ci.yml)
+[![Release Gate](https://github.com/DiogoRibeiro7/health-data-science/actions/workflows/release-gate.yml/badge.svg)](https://github.com/DiogoRibeiro7/health-data-science/actions/workflows/release-gate.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Repository structure
-- `scripts/ncdb_LCA.R` – example latent class analysis on early-stage NCDB data, saving results to `data/lca_earlypuf.RData`.
-- `scripts/ncdbearly_Regression.R` – example regression models using the latent class assignments.
-- `R/utils.R` – helper functions for package installation, directory creation, and data validation.
-- `R/data_processing.R` – data quality assessment, imputation, outlier handling, feature engineering, and ETL utilities.
-- `R/model_validation.R` – residual analysis, goodness-of-fit tests, bootstrap confidence intervals, cross-validation, and LCA diagnostics.
-- `R/database.R` – database connectivity helpers with connection pooling and streaming queries.
-- `R/etl.R` – incremental ETL pipelines and data lineage logging.
-- `R/storage.R` – Parquet and cloud storage utilities for scalable datasets.
-- `R/advanced_survival.R` – competing-risk and advanced Cox helpers.
-- `R/advanced_latent_models.R` – latent-variable and finite-mixture helpers.
-- `R/statistical_learning.R` – ranger, xgboost, and neural-network wrappers.
-- `R/clinical_analytics.R` – clinical prediction, pharmacovigilance, and biomarker helpers.
-- `R/bayesian_methods.R` – Bayesian modelling wrappers.
-- `R/ml_features.R` – automated feature engineering and selection utilities.
-- `R/mlops.R` – model registry, validation and monitoring helpers.
-- `R/interpretability.R` – SHAP values, feature importance and partial dependence.
-- `R/deployment.R` – REST API scoring, batch prediction and deployment stubs.
-- `R/population_health.R` – epidemiological and population health analysis utilities.
-- `data/` – contains example input data (`puf_early.csv`) and stores intermediate outputs. See `data/README.md`.
-- `app/` – Shiny application for interactive analysis with file upload and download.
-- `api/` – Plumber REST API exposing latent class analysis endpoints.
+`healthdatascience` is an R toolkit for clinical, epidemiological, and
+real-world health-data analysis.
 
-## Prerequisites
-Install R, pre-commit, and the system libraries required to compile common R packages:
+Its main goal is not to automate statistical decisions. It is to make them
+**explicit**: the estimand, assumptions, risk set, missing-data policy,
+uncertainty calculation, diagnostic checks, and model limitations should be
+visible in the analysis rather than hidden behind a convenience wrapper.
 
-```bash
-sudo apt-get update -y
-sudo apt-get install -y r-base python3-pip pre-commit \\
-    libcurl4-openssl-dev libssl-dev libxml2-dev \\
-    gdal-bin libgdal-dev libgeos-dev libproj-dev libicu-dev cmake
-```
+The package grew from reproducible health-data workflows into a broader
+statistical toolkit covering event-history analysis, longitudinal data,
+missing-data sensitivity, causal inference, latent-variable models, Bayesian
+methods, clinical prediction, biomarkers, statistical learning, and
+population-health analysis.
 
-This repository uses [renv](https://rstudio.github.io/renv/) to manage package versions. After cloning the project, restore the R library with:
+> **Current status:** version 0.3.0 is the API-hardening release line. The
+> statistical correctness blockers identified for the release candidate have
+> been addressed; release-engineering gates are tracked separately in the
+> [0.3.0 release-readiness checklist](docs/release_readiness_0.3.0.md).
 
-```bash
-R -q -e 'renv::restore()'
-```
+## Why this package exists
 
-A helper script is available at `scripts/install_system_deps.sh` to install these tools and libraries.
-For a one-step setup that verifies your R version and restores packages, run:
+Health-data analysis often fails in fairly ordinary ways: the target estimand
+is left implicit, a model is chosen because a package makes it convenient,
+missing observations disappear silently, diagnostics are treated as optional,
+or a fitted coefficient is interpreted more broadly than the design permits.
 
-```bash
-bash scripts/setup.sh
-```
+This project takes the opposite approach.
 
+- **Define the scientific target first.** ATE and ATT, cumulative incidence,
+  cause-specific hazards, recurrent-event risk sets, state occupancy, and
+  local RD effects are different quantities and should remain different in the
+  API.
+- **Expose assumptions and diagnostics.** Weak instruments, propensity-score
+  overlap, singular mixed models, MCMC diagnostics, RD placebo checks, and
+  missing-data sensitivity are part of the analysis, not afterthoughts.
+- **Prefer transparent models.** Interpretable statistical models are preferred
+  when they answer the scientific question adequately. Machine learning is
+  available where prediction is the actual goal.
+- **Keep uncertainty attached to the estimand.** Standard errors, confidence or
+  credible intervals, influence functions, and robust covariance choices are
+  treated as first-class outputs.
+- **Avoid silent repair.** The package generally fails explicitly on invalid
+  data structures or ambiguous model assumptions rather than guessing what the
+  analyst intended.
 
-## Getting Started
-1. Clone the repository:
-```bash
-git clone <repo-url>
-cd health-data-science
-```
-2. Install system libraries:
-```bash
-bash scripts/install_system_deps.sh
-```
-3. Restore R packages:
-```bash
-R -q -e 'renv::restore()'
-```
-4. Install pre-commit hooks:
-```bash
-pre-commit install
-```
-5. Generate the sample dataset:
-```bash
-Rscript scripts/generate_sample_data.R
-```
+## What you can study
 
-For a condensed walkthrough, see the [Quickstart Guide](docs/quickstart.md). A step-by-step tutorial lives in `docs/tutorials/`.
+The toolkit is organised around statistical questions rather than around a
+single modelling framework.
 
-## Documentation
-The [documentation index](docs/README.md) links the statistical-method,
-operations, migration, API-inventory, and release-readiness references.
+### Event histories and disease trajectories
 
-Key release documents:
+Analyse time-to-event data with competing risks, recurrent events, multi-state
+models, time-varying Cox effects, frailty models, and landmark analyses. The
+interfaces distinguish cause-specific hazards, subdistribution hazards, and
+state-occupation probabilities rather than presenting them as interchangeable
+survival summaries.
 
-- [Statistical Methods](docs/statistical_methods.md)
-- [Public API Inventory](docs/api_inventory.md)
-- [0.3.0 Release Readiness](docs/release_readiness_0.3.0.md)
-- [Roadmap to 1.0.0](NEXT_STEPS.md)
+### Longitudinal and incomplete data
 
-Package vignettes offer fully worked examples and can be viewed with:
+Fit repeated-measures models with explicit random-effects structures and inspect
+variance components and singularity. Explore departures from missing at random
+with delta-adjusted pattern-mixture sensitivity analyses and tipping-point
+workflows.
+
+### Causal and real-world evidence
+
+Design propensity-score analyses for explicit target populations, assess
+overlap and balance, estimate weighted and doubly robust treatment effects, and
+work with instrumental variables, staggered-adoption difference in differences,
+and regression discontinuity designs. Diagnostics are designed to expose weak
+identification and design sensitivity rather than certify causal validity.
+
+### Latent structure and Bayesian modelling
+
+Work with latent transition models, finite mixtures, latent class models, and
+hierarchical Bayesian models while retaining engine-native fitted objects and
+explicit metadata. Bayesian helpers expose sampling controls, posterior
+summaries, MCMC diagnostics, and posterior predictive checks.
+
+### Clinical prediction and biomarkers
+
+Develop binary clinical prediction models with transparent apparent-performance
+summaries, analyse pharmacovigilance disproportionality without presenting it as
+causal evidence, and run explicit pairwise biomarker analyses with multiplicity
+control and effect-size thresholds.
+
+### Statistical learning and population health
+
+Use random forests, gradient boosting, and neural networks when prediction is
+the objective, with task type and preprocessing recorded explicitly. The wider
+toolkit also contains survey, spatial, epidemiological, data-quality, reporting,
+and operational utilities used in health-data workflows.
+
+For the complete method catalogue, assumptions, and implementation notes, see
+the [documentation hub](docs/README.md).
+
+## A small example
+
+The following synthetic example targets an average treatment effect. The
+propensity design and the treatment-effect estimator are separate on purpose:
+the design can be inspected before an outcome estimate is interpreted.
 
 ```r
- browseVignettes('healthdatascience')
+library(healthdatascience)
+
+set.seed(42)
+
+n <- 1000
+x <- rnorm(n)
+z <- rnorm(n)
+
+p <- plogis(-0.2 + 0.8 * x - 0.4 * z)
+treatment <- rbinom(n, 1, p)
+outcome <- 2 * treatment + 1.2 * x - 0.7 * z + rnorm(n)
+
+dat <- data.frame(
+  treatment = treatment,
+  outcome = outcome,
+  x = x,
+  z = z
+)
+
+design <- fit_propensity_design(
+  dat,
+  treatment = "treatment",
+  covariates = c("x", "z"),
+  estimand = "ATE"
+)
+
+propensity_overlap(design)
+propensity_balance(design)
+
+estimate_doubly_robust(
+  design,
+  outcome = "outcome"
+)
 ```
 
-## Usage
-1. Ensure `data/puf_early.csv` is present. A small synthetic sample is provided and can be regenerated with `scripts/generate_sample_data.R`. Replace it with the official NCDB PUF file for real analyses.
-2. Run the latent class analysis (override defaults with `--input` and `--output` if desired):
-   ```bash
-   Rscript scripts/ncdb_LCA.R --input data/puf_early.csv --output data/lca_earlypuf.RData
-   ```
-   Use `--dry-run` to validate arguments without executing, `--quiet` to suppress
-   progress output, or `--version` to print the script version.
-   Parallel execution can be enabled by setting `parallel = TRUE` in the
-   configuration file to accelerate model fitting on multi-core machines.
-3. Run the regression models (accepts `--input` to specify the LCA results):
-   ```bash
-  Rscript scripts/ncdbearly_Regression.R --input data/lca_earlypuf.RData
-  ```
-   These scripts determine the project root automatically, so the default
-   paths work even when invoked from outside the repository using absolute
-   script locations. Progress bars and verbose messages provide feedback during
-   lengthy operations. Execution time and memory usage are reported for major
-  steps, and intermediate results are cached to speed up repeated runs. The
-  optimization helpers support parallel processing for computationally
-  intensive tasks.
-The scripts attempt to install any missing R packages automatically.
-Package installation is verified, the latent class analysis uses a fixed
-random seed for reproducible results, and output directories are created
-automatically when needed.
+The point is not that this is the only way to estimate an ATE. The point is
+that the target population, treatment design, diagnostics, nuisance models, and
+uncertainty calculation are inspectable and testable.
 
-## Web interfaces
+## Installation
 
-Launch the Shiny application for interactive analysis:
+The project is currently developed from GitHub.
 
 ```bash
-Rscript scripts/run_app.R
+git clone https://github.com/DiogoRibeiro7/health-data-science.git
+cd health-data-science
+R CMD INSTALL .
 ```
 
-The dashboard offers a responsive layout with dark or light themes, interactive plotly charts, real-time metrics, collaborative notes, and role-aware access controls for healthcare analysts.
+For development work, system dependencies, synthetic example data, and the
+repository setup workflow, start with the
+[Quickstart Guide](docs/quickstart.md).
 
-Start the REST API to run analyses programmatically:
+The project contains an `renv.lock`, but the lockfile is still being reconciled
+with the 0.3.0 dependency surface and should not yet be treated as the final
+release snapshot.
 
-```bash
-Rscript scripts/run_api.R
-```
-Endpoints support either an `X-API-Key` header or an OAuth2 `Authorization`
-Bearer token. Keys and roles are managed with `verify_api_key()` and
-`rotate_api_key()` utilities. All routes are versioned under `/v1`; liveness and
-readiness probes live at `/v1/health/live` and `/v1/health/ready`. The `/v1/lca`
-endpoint accepts CSV uploads and returns a job identifier for asynchronous
-processing, while websocket updates are available at `/v1/updates`.
+## Documentation
 
-## Deployment
+The README is intentionally an overview. Detailed usage belongs in the
+documentation.
 
-Build and run the containerised environment:
+- **Start here:** [Documentation hub](docs/README.md)
+- **Methods and assumptions:** [Statistical methods](docs/statistical_methods.md)
+- **First repository workflow:** [Quickstart](docs/quickstart.md)
+- **Causal API changes:** [Causal API migration](docs/causal_api_migration.md)
+- **Everything currently exported:** [Public API inventory](docs/api_inventory.md)
+- **Release status:** [0.3.0 release readiness](docs/release_readiness_0.3.0.md)
+- **Long-term direction:** [Roadmap to 1.0.0](NEXT_STEPS.md)
 
-```bash
-bash scripts/deploy.sh
-docker run -p 3838:3838 -p 8000:8000 health-data-science
-```
+Method-specific notes cover survival analysis, instrumental variables,
+difference in differences, regression discontinuity, Bayesian methods, latent
+models, clinical analytics, biomarkers, statistical learning, population
+health, and real-world evidence.
 
-Backup and restore the project data:
+## Project origins
 
-```bash
-scripts/backup.sh data backup.tar.gz
-scripts/restore.sh backup.tar.gz
-```
+The repository originally included reproducible scripts for studying disparities
+in care among early-stage pancreatic-cancer patients using latent class analysis
+and regression. Those workflows remain available as examples, but the package
+is no longer organised around that single study.
 
-Monitor the API in production with a simple health check:
+Synthetic data can be generated locally, so the repository can be explored
+without access to restricted NCDB data.
 
-```bash
-scripts/monitor_api.sh
-```
+## Interfaces beyond R scripts
 
-## Model validation
-The `R/model_validation.R` module provides tools to assess model quality:
+The repository also contains a Shiny application and a Plumber API used to test
+interactive and service-oriented workflows. They are deliberately secondary to
+the statistical core.
 
-- Residual diagnostics and goodness-of-fit statistics for regression models.
-- Bootstrap confidence intervals and k-fold cross validation utilities.
-- Posterior probability summaries and class-quality metrics for latent class models.
-- Latent class profile plotting and stability assessments across random seeds.
+Operational material — API deployment, monitoring, database/ETL workflows,
+security, and backup — is documented under
+[Package use and operations](docs/README.md#package-use-and-operations).
 
-## Data Processing
+## Development and releases
 
-The `data_processing` module provides production-ready data wrangling helpers:
+Development uses `main` as the single long-lived branch.
 
-- assess data quality with missingness and uniqueness summaries
-- impute missing values (multiple imputation when the `mice` package is available)
-- detect and cap outliers using the IQR rule
-- engineer interaction and polynomial features
-- read from CSV, Excel, or SQLite sources and export to common formats
-- run transformation pipelines with validation checkpoints and record data lineage
+Pull requests run lightweight syntax and diff checks. Merges to `main` run the
+current-R package check. The heavier compatibility matrix, full optional
+dependencies, coverage, container build, and vulnerability scan live in the
+separate **Release Gate** workflow and are run when preparing a release.
 
-## Visualization and Reporting
-- `R/visualization.R` offers a publication-ready theme, interactive Plotly helpers, forest plots, and network diagrams for exploring variable relationships.
-- `R/reporting.R` with templates in `templates/` produces parameterized reports, formatted tables, executive summaries, and model comparison documents.
-
-
-## Configuration
-
-Default parameters for the analyses live in `config/default.yaml`. Environment-
-specific overrides (`development.yaml`, `production.yaml`, `testing.yaml`) can
-adjust settings such as the number of latent classes or regression family.
-Use the `--config` flag on command-line scripts to select the environment.
-Configuration files are validated for type and range correctness via
-`load_config()` before execution.
+The public surface is still being consolidated before 1.0.0. Exported functions
+in 0.3.0 are listed in the
+[API inventory](docs/api_inventory.md); that inventory is not a promise that
+every historical utility will remain in the eventual 1.0 stable API.
 
 ## License
-This project is licensed under the [MIT License](LICENSE).
 
-## Contact
-Diogo Ribeiro
-Faculty of Media Arts and Design, Technical University of Porto
-diogo.debastos.ribeiro@gmail.com | dfr@esmad.ipp.pt
+MIT. See [LICENSE](LICENSE).
+
+## Author
+
+**Diogo Ribeiro**  
+Faculty of Media Arts and Design, Technical University of Porto  
 ORCID: https://orcid.org/0009-0001-2022-7072
