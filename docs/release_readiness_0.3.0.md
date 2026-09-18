@@ -16,16 +16,13 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 - Advanced statistical code split into focused modules.
 - Survival, recurrent-event, multi-state, longitudinal, missing-data sensitivity, propensity, doubly robust, IV, DiD, RD, clinical, biomarker, statistical-learning, Bayesian, and latent-model APIs added or hardened.
 - ATT doubly robust inference corrected to use the ratio-estimator influence function.
+- IV over-identification rank corrected to use incremental estimable rank conditional on included covariates.
 - CI runs changed-file linting rather than failing new pull requests on unrelated historical lint debt.
 - Current and previous R releases remain in the CI matrix.
 - The exported API contains no duplicate `NAMESPACE` entries.
 - Documentation index and public API inventory added.
 
 ## Blocking correctness audits
-
-### Instrumental-variable over-identification rank
-
-The current Sargan degrees of freedom are based on the raw excluded-instrument model-matrix rank. Before release, this should be audited against the **incremental estimable rank conditional on included covariates**. The first-stage nested-model numerator degrees of freedom are already available and should be reconciled with the over-identification calculation.
 
 ### Regression-discontinuity result extraction
 
@@ -39,7 +36,7 @@ For an analyst-supplied fixed placebo bandwidth, a placebo window can currently 
 
 A 0.3.0 tag should be created only after all of the following are true:
 
-- [ ] IV rank/over-identification audit completed and regression-tested.
+- [x] IV rank/over-identification audit completed and regression-tested.
 - [ ] RD robust-row extraction made explicit and regression-tested.
 - [ ] Fixed-bandwidth placebo windows cannot cross the true cutoff.
 - [ ] `R CMD check --as-cran` is clean on the supported CI R versions.
