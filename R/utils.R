@@ -7,52 +7,47 @@
 # Last Modified: 2025-03-??
 # ------------------------------------------------------------------------------
 
-#' Ensure required R packages are installed and loaded
+#' Check that required R packages are available
 #'
-#' Attempts to install any packages that are not already available and
-#' loads them quietly for use. Installation failures yield descriptive
-#' error messages so users can take corrective action.
+#' Verifies that optional package dependencies are installed without modifying
+#' the user's library or search path. Missing packages produce an informative
+#' error with an explicit installation command.
 #'
-#' @param packages Character vector of package names to install and load.
+#' @param packages Character vector of package names to check.
 #'
-#' @return Invisible `TRUE` when all packages have been successfully loaded.
+#' @return Invisible `TRUE` when all requested packages are available.
 #'
 #' @examples
 #' ensure_packages(c("stats", "utils"))
+#' @export
 ensure_packages <- function(packages) {
-  if (!is.character(packages)) {
-    log_error("`packages` must be a character vector", component = "utils")
-    stop("`packages` must be a character vector", call. = FALSE)
+  if (!is.character(packages) || length(packages) == 0L ||
+      anyNA(packages) || any(!nzchar(packages))) {
+    stop("`packages` must be a non-empty character vector", call. = FALSE)
   }
-  repos <- "https://cloud.r-project.org"
-  for (pkg in packages) {
-    log_debug(sprintf("Checking package '%s'", pkg), component = "utils")
-    if (!requireNamespace(pkg, quietly = TRUE)) {
-      attempt <- 1
-      success <- FALSE
-      while (attempt <= 2 && !success) {
-        tryCatch({
-          install.packages(pkg, repos = repos, dependencies = TRUE)
-          success <- TRUE
-        }, error = function(e) {
-          log_warn(sprintf("Attempt %d to install '%s' failed: %s", attempt, pkg, e$message), component = "utils")
-          attempt <<- attempt + 1
-          if (attempt > 2) {
-            log_error(sprintf("Failed to install package '%s'", pkg), component = "utils")
-            stop("Failed to install package '", pkg, "': ", e$message,
-                 "\nPlease check your internet connection or install the package manually.",
-                 call. = FALSE)
-          }
-        })
-      }
-      if (!requireNamespace(pkg, quietly = TRUE)) {
-        log_error(sprintf("Package '%s' could not be loaded after installation", pkg), component = "utils")
-        stop("Package '", pkg, "' could not be loaded after installation.", call. = FALSE)
-      }
-    }
-    suppressPackageStartupMessages(library(pkg, character.only = TRUE))
-    log_info(sprintf("Package '%s' loaded", pkg), component = "utils")
+
+  missing <- packages[
+    !vapply(packages, requireNamespace, logical(1), quietly = TRUE)
+  ]
+
+  if (length(missing) > 0L) {
+    command <- sprintf(
+      "install.packages(c(%s))",
+      paste(sprintf('"%s"', missing), collapse = ", ")
+    )
+    stop(
+      paste0(
+        "Missing optional package",
+        if (length(missing) == 1L) "" else "s",
+        ": ",
+        paste(missing, collapse = ", "),
+        ". Install with: ",
+        command
+      ),
+      call. = FALSE
+    )
   }
+
   invisible(TRUE)
 }
 
