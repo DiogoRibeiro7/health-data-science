@@ -4,7 +4,7 @@ This guide outlines deployment, monitoring, and performance tuning for the healt
 
 ## Deployment
 
-1. **Environment setup**: `renv::restore()` to obtain package versions.
+1. **Environment setup**: `Rscript scripts/install_r_deps.R` to install dependencies declared in `DESCRIPTION`.
 2. **Container build**: `docker build -t hds .` using the multi-stage Dockerfile.
 3. **Kubernetes rollout**: apply manifests in `k8s/` or install the Helm chart in `helm/`.
 
