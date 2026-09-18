@@ -18,8 +18,8 @@ fi
 echo "Installing system libraries..."
 bash "$(dirname "$0")/install_system_deps.sh"
 
-echo "Installing R dependencies from DESCRIPTION..."
-Rscript "$(dirname "$0")/install_r_deps.R" || {
+echo "Installing full R dependency set from DESCRIPTION..."
+Rscript "$(dirname "$0")/install_r_deps.R" --all || {
   echo "Failed to install R dependencies. Check the messages above for details." >&2
   exit 1
 }
