@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Reconciled the roadmap so completed survival, longitudinal, missing-data, and causal work is no longer listed as future work.
 - Fixed changed-file linting in CI so unrelated historical lint debt does not block new pull requests.
 - Split normal CI from the heavy release gate so old-R compatibility, full optional dependencies, coverage, and security scans do not run after every merge.
+- Removed the stale incomplete `renv` snapshot and made `DESCRIPTION` the single dependency source for local setup, CI, and container builds.
 - Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
 - Corrected IV over-identification diagnostics to use excluded-instrument rank conditional on included covariates.
 - Made RD sensitivity extraction explicitly select the named `Robust` rdrobust inference row.

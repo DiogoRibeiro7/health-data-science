@@ -7,12 +7,13 @@ suggestions for recovery.
 
 If you encounter errors about missing R packages, run:
 
-```r
-renv::restore()
+```bash
+Rscript scripts/install_r_deps.R
 ```
 
-This installs all dependencies recorded in `renv.lock`. Internet access is
-required.
+This installs the required dependencies declared in `DESCRIPTION`. Use
+`Rscript scripts/install_r_deps.R --dev` for developer tooling. Internet
+access is required.
 
 ## File Not Found
 

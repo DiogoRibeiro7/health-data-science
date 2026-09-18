@@ -1,10 +1,7 @@
 .git
 .github
-renv
-renv.lock
 R/*.Rproj
 *.Rproj
-.renv
 .Rhistory
 .RData
 /tests
@@ -12,6 +9,5 @@ R/*.Rproj
 /docs
 /examples
 /outputs
-/renv
 .vignettes
 clients

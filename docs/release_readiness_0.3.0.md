@@ -23,8 +23,7 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 - Normal `main` CI runs one current-R hard-dependency package check; the previous-R matrix, full optional dependencies, coverage, and security scan run in the separate Release Gate workflow.
 - The exported API contains no duplicate `NAMESPACE` entries.
 - Documentation index and public API inventory added.
-
-## Blocking correctness audits
+- Removed the stale incomplete `renv` snapshot and unified local, CI, and container dependency installation around `DESCRIPTION`.
 
 ## Release-engineering gates
 
@@ -38,7 +37,7 @@ A 0.3.0 tag should be created only after all of the following are true:
 - [ ] Release Gate container vulnerability scan passes.
 - [ ] Documentation links in `README.md` and `docs/README.md` are valid.
 - [ ] `DESCRIPTION`, `NAMESPACE`, `CHANGELOG.md`, and the API inventory agree on the release surface.
-- [ ] `renv.lock` is synchronized with the declared package dependencies; the current lockfile is incomplete and must not be treated as a reproducible release snapshot.
+- [x] Dependency management has one source of truth: `DESCRIPTION`; the stale incomplete `renv` snapshot has been removed.
 - [ ] No deprecated causal wrapper is removed before the documented major-release migration point.
 
 ## Release policy

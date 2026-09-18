@@ -4,8 +4,8 @@ Thank you for your interest in contributing to this project! Please follow these
 
 ## Getting Started
 - Fork the repository and create your branch from `main`.
-- Ensure you have [renv](https://rstudio.github.io/renv/) set up by running `renv::restore()`.
 - Install system dependencies with `bash scripts/install_system_deps.sh`.
+- Install R dependencies and developer tooling with `Rscript scripts/install_r_deps.R --dev`.
 
 ## Code Style
 - Run `pre-commit run --files <changed files>` before committing to apply linters and formatting.

@@ -1,14 +1,10 @@
 #!/usr/bin/env bash
 set -e
 
-# bootstrap local development environment
-if [ ! -f "renv.lock" ]; then
-  echo "renv.lock not found" >&2
-  exit 1
-fi
+bash "$(dirname "$0")/install_system_deps.sh"
+Rscript "$(dirname "$0")/install_r_deps.R" --dev
 
-R -e 'install.packages("renv"); renv::restore(prompt = FALSE)'
-pip install pre-commit
+python -m pip install pre-commit
 pre-commit install
 
 echo "Development environment ready."

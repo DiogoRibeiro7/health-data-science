@@ -161,9 +161,8 @@ For development work, system dependencies, synthetic example data, and the
 repository setup workflow, start with the
 [Quickstart Guide](docs/quickstart.md).
 
-The project contains an `renv.lock`, but the lockfile is still being reconciled
-with the 0.3.0 dependency surface and should not yet be treated as the final
-release snapshot.
+Package dependencies are declared in `DESCRIPTION`. Local setup, CI, and
+container builds all install from that same dependency contract.
 
 ## Documentation
 
