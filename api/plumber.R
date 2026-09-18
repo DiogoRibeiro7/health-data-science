@@ -94,7 +94,7 @@ function(res){
     res$status <- 500
     return("metrics unavailable")
   }
-  prometheus::registry_render_metrics(metrics$registry)
+  .hds_render_metrics(metrics$registry)
 }
 
 #* Run latent class analysis asynchronously
