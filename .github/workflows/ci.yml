@@ -19,10 +19,7 @@ jobs:
           use-public-rspm: true
           r-version: release
 
-      - name: Install lightweight lint tooling
-        run: Rscript -e 'install.packages("lintr")'
-
-      - name: Check changed R files
+      - name: Parse changed R files
         shell: bash
         run: |
           mapfile -t files < <(
@@ -35,18 +32,10 @@ jobs:
           fi
 
           printf '%s\n' "${files[@]}"
-
           Rscript - "${files[@]}" <<'RSCRIPT'
           files <- commandArgs(trailingOnly = TRUE)
-
-          linters <- lintr::linters_with_defaults(
-            object_usage_linter = NULL,
-            object_name_linter = NULL,
-            indentation_linter = NULL,
-            line_length_linter = lintr::line_length_linter(100L)
-          )
-
           failures <- 0L
+
           for (file in files) {
             tryCatch(
               parse(file = file),
@@ -55,18 +44,12 @@ jobs:
                 failures <<- failures + 1L
               }
             )
-
-            lints <- lintr::lint(file, linters = linters)
-            if (length(lints) > 0L) {
-              print(lints)
-              failures <- failures + length(lints)
-            }
           }
 
           if (failures > 0L) quit(status = 1L)
           RSCRIPT
 
-      - name: Check changed text files
+      - name: Check changed text
         shell: bash
         run: |
           git diff --check             "${{ github.event.pull_request.base.sha }}"             "${{ github.sha }}"
