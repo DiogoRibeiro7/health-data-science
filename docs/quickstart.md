@@ -6,7 +6,7 @@ This guide walks you through installing dependencies and running the sample work
 ```bash
 bash scripts/setup.sh
 ```
-This script verifies system requirements, installs missing libraries, and restores the R package library via `renv`.
+This script verifies system requirements, installs required system libraries, and installs the R dependencies declared in `DESCRIPTION`.
 
 ## 2. Generate synthetic sample data
 ```bash
