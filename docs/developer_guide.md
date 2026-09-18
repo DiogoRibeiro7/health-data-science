@@ -22,7 +22,7 @@ This document outlines key conventions for contributors extending the package.
 
 ## Pull Requests
 
-* Run `renv::snapshot()` after adding or removing dependencies.
+* Keep `DESCRIPTION` synchronized when adding or removing package dependencies.
 * Ensure `R -q -e 'testthat::test_dir("tests/testthat")'` passes before
   submitting.
 
