@@ -35,10 +35,10 @@ A 0.3.0 tag should be created only after all of the following are true:
 - [ ] Release Gate `R CMD check --as-cran` is clean on the supported R versions.
 - [ ] Release Gate test coverage is at least 80%.
 - [ ] Release Gate container vulnerability scan passes.
-- [ ] Documentation links in `README.md` and `docs/README.md` are valid.
-- [ ] `DESCRIPTION`, `NAMESPACE`, `CHANGELOG.md`, and the API inventory agree on the release surface.
+- [x] Documentation links in `README.md` and `docs/README.md` are validated by `scripts/check_release_surface.R`.
+- [x] `DESCRIPTION`, `NAMESPACE`, `CHANGELOG.md`, and the API inventory are validated for release-surface consistency.
 - [x] Dependency management has one source of truth: `DESCRIPTION`; the stale incomplete `renv` snapshot has been removed.
-- [ ] No deprecated causal wrapper is removed before the documented major-release migration point.
+- [x] Deprecated causal compatibility wrappers remain exported during the documented migration window.
 
 ## Release policy
 
