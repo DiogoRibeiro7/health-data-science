@@ -6,13 +6,89 @@
 # Last Modified: 2025-04-??
 # ------------------------------------------------------------------------------
 
+.hds_metric_registry <- function() {
+  registry <- new.env(parent = emptyenv())
+  registry$metrics <- list()
+  class(registry) <- "Registry"
+  registry
+}
+
+.hds_metric <- function(type, name, help, labels = character(), registry = NULL,
+                        buckets = NULL) {
+  metric <- new.env(parent = emptyenv())
+  metric$type <- type
+  metric$name <- name
+  metric$help <- help
+  metric$labels <- labels
+  metric$buckets <- buckets
+  metric$value <- 0
+  metric$samples <- list()
+
+  key_from_labels <- function(values) {
+    if (length(labels) == 0L) return("")
+    values <- values[labels]
+    paste(paste0(labels, "=", unlist(values)), collapse = ",")
+  }
+
+  metric$inc <- function(value = 1, labels = list()) {
+    key <- key_from_labels(labels)
+    current <- if (is.null(metric$samples[[key]])) 0 else metric$samples[[key]]
+    metric$samples[[key]] <- current + value
+    metric$value <- metric$value + value
+    invisible(NULL)
+  }
+
+  metric$set <- function(value, labels = list()) {
+    key <- key_from_labels(labels)
+    metric$samples[[key]] <- value
+    metric$value <- value
+    invisible(NULL)
+  }
+
+  metric$observe <- function(value, labels = list()) {
+    key <- key_from_labels(labels)
+    values <- metric$samples[[key]]
+    metric$samples[[key]] <- c(values, value)
+    metric$value <- value
+    invisible(NULL)
+  }
+
+  metric$get <- function() {
+    values <- unlist(metric$samples, use.names = FALSE)
+    if (length(values) == 0L) values <- metric$value
+    list(samples = data.frame(value = values))
+  }
+
+  class(metric) <- type
+  if (!is.null(registry)) {
+    registry$metrics[[name]] <- metric
+  }
+  metric
+}
+
+.hds_render_metrics <- function(registry) {
+  if (!inherits(registry, "Registry")) {
+    stop("Invalid metrics registry", call. = FALSE)
+  }
+  lines <- unlist(lapply(registry$metrics, function(metric) {
+    values <- unlist(metric$samples, use.names = FALSE)
+    if (length(values) == 0L) values <- metric$value
+    c(
+      paste0("# HELP ", metric$name, " ", metric$help),
+      paste0("# TYPE ", metric$name, " ", tolower(metric$type)),
+      paste(metric$name, values)
+    )
+  }), use.names = FALSE)
+  paste(lines, collapse = "\n")
+}
+
 #' Initialize monitoring metrics
 #'
 #' Sets up default Prometheus counters, gauges, and histograms for tracking
 #' request throughput, latency, errors, and resource utilisation. Returns a list
 #' containing the registry and metric objects for further use.
 #'
-#' @param registry Optional existing `prometheus::Registry` object.
+#' @param registry Optional existing registry returned by `init_monitoring()`.
 #'
 #' @return A list with the metrics registry and created metric objects.
 #' @examples
@@ -21,19 +97,21 @@
 #' }
 #' @export
 init_monitoring <- function(registry = NULL) {
-  if (!requireNamespace("prometheus", quietly = TRUE)) {
-    stop("prometheus package required for monitoring")
+  if (is.null(registry)) registry <- .hds_metric_registry()
+  if (!inherits(registry, "Registry")) {
+    stop("`registry` must be a Registry object", call. = FALSE)
   }
-  if (is.null(registry)) registry <- prometheus::Registry$new()
 
-  http_requests <- prometheus::Counter$new(
+  http_requests <- .hds_metric(
+    type = "Counter",
     name = "http_requests_total",
     help = "Total HTTP requests",
     labels = c("method", "endpoint"),
     registry = registry
   )
 
-  request_latency <- prometheus::Histogram$new(
+  request_latency <- .hds_metric(
+    type = "Histogram",
     name = "http_request_latency_seconds",
     help = "Request latency",
     buckets = c(0.1, 0.3, 1, 3, 5),
@@ -41,20 +119,23 @@ init_monitoring <- function(registry = NULL) {
     registry = registry
   )
 
-  errors_total <- prometheus::Counter$new(
+  errors_total <- .hds_metric(
+    type = "Counter",
     name = "http_errors_total",
     help = "Total HTTP errors",
     labels = c("endpoint"),
     registry = registry
   )
 
-  cpu_usage <- prometheus::Gauge$new(
+  cpu_usage <- .hds_metric(
+    type = "Gauge",
     name = "process_cpu_seconds_total",
     help = "Total user and system CPU time consumed",
     registry = registry
   )
 
-  memory_usage <- prometheus::Gauge$new(
+  memory_usage <- .hds_metric(
+    type = "Gauge",
     name = "process_memory_bytes",
     help = "Approximate memory usage in bytes",
     registry = registry
