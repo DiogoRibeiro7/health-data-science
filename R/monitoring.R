@@ -84,19 +84,25 @@
   metric
 }
 
-.hds_prometheus_labels <- function(key) {
-  if (!nzchar(key)) return("")
-  pairs <- strsplit(key, ",", fixed = TRUE)[[1L]]
-  parsed <- strsplit(pairs, "=", fixed = TRUE)
-  body <- paste(
-    vapply(
+.hds_prometheus_labels <- function(key, extra = NULL) {
+  labels <- character()
+
+  if (nzchar(key)) {
+    pairs <- strsplit(key, ",", fixed = TRUE)[[1L]]
+    parsed <- strsplit(pairs, "=", fixed = TRUE)
+    labels <- vapply(
       parsed,
       function(x) sprintf('%s="%s"', x[[1L]], x[[2L]]),
       character(1)
-    ),
-    collapse = ","
-  )
-  paste0("{", body, "}")
+    )
+  }
+
+  if (!is.null(extra)) {
+    labels <- c(labels, extra)
+  }
+
+  if (length(labels) == 0L) return("")
+  paste0("{", paste(labels, collapse = ","), "}")
 }
 
 .hds_render_metrics <- function(registry) {
@@ -124,9 +130,13 @@
         values <- metric$samples[[key]]
         for (bucket in metric$buckets) {
           count <- sum(values <= bucket)
+          bucket_labels <- .hds_prometheus_labels(
+            key,
+            extra = paste0('le="', bucket, '"')
+          )
           lines <- c(
             lines,
-            paste0(metric$name, "_bucket", labels, ' le="', bucket, '" ', count)
+            paste0(metric$name, "_bucket", bucket_labels, " ", count)
           )
         }
         lines <- c(
