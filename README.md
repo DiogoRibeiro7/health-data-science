@@ -1,9 +1,10 @@
 # Health Data Science
 
-This repository provides a health data science toolkit with reproducible workflows.
-It currently includes scripts for reproducing analyses from the study
-"Cluster identification of early-stage pancreas cancer patients at greatest risk for disparities of care" by Ugwuji N. Maduekwe,
-Briana J. K. Stephenson, Jen Jen Yeh, Melissa Troester and Hanna K. Sanoff.
+This repository provides a health data science toolkit with reproducible,
+statistically explicit workflows for clinical, epidemiological, and real-world
+health data. The package includes modern survival, longitudinal, missing-data
+sensitivity, causal-inference, latent-variable, Bayesian, biomarker, prediction,
+and population-health methods alongside the original NCDB analysis workflows.
 
 ## Repository structure
 - `scripts/ncdb_LCA.R` – example latent class analysis on early-stage NCDB data, saving results to `data/lca_earlypuf.RData`.
@@ -14,7 +15,11 @@ Briana J. K. Stephenson, Jen Jen Yeh, Melissa Troester and Hanna K. Sanoff.
 - `R/database.R` – database connectivity helpers with connection pooling and streaming queries.
 - `R/etl.R` – incremental ETL pipelines and data lineage logging.
 - `R/storage.R` – Parquet and cloud storage utilities for scalable datasets.
-- `R/advanced_models.R` – ensemble, time-series, survival and causal modelling helpers.
+- `R/advanced_survival.R` – competing-risk and advanced Cox helpers.
+- `R/advanced_latent_models.R` – latent-variable and finite-mixture helpers.
+- `R/statistical_learning.R` – ranger, xgboost, and neural-network wrappers.
+- `R/clinical_analytics.R` – clinical prediction, pharmacovigilance, and biomarker helpers.
+- `R/bayesian_methods.R` – Bayesian modelling wrappers.
 - `R/ml_features.R` – automated feature engineering and selection utilities.
 - `R/mlops.R` – model registry, validation and monitoring helpers.
 - `R/interpretability.R` – SHAP values, feature importance and partial dependence.
@@ -74,18 +79,15 @@ Rscript scripts/generate_sample_data.R
 For a condensed walkthrough, see the [Quickstart Guide](docs/quickstart.md). A step-by-step tutorial lives in `docs/tutorials/`.
 
 ## Documentation
-Detailed references are provided in the `docs/` directory:
+The [documentation index](docs/README.md) links the statistical-method,
+operations, migration, API-inventory, and release-readiness references.
 
-- [Data Requirements](docs/data_requirements.md)
+Key release documents:
+
 - [Statistical Methods](docs/statistical_methods.md)
-- [Performance Considerations](docs/performance.md)
-- [Troubleshooting Guide](docs/troubleshooting.md)
-- [Developer Guide](docs/developer_guide.md)
-- [Database Connectivity and ETL](docs/database_etl.md)
-- [Security and Compliance](docs/security_compliance.md)
-- [Monitoring and Observability](docs/observability.md)
-- [Deployment and CI/CD](docs/deployment_ci_cd.md)
-- [Backup and Disaster Recovery](docs/backup_dr.md)
+- [Public API Inventory](docs/api_inventory.md)
+- [0.3.0 Release Readiness](docs/release_readiness_0.3.0.md)
+- [Roadmap to 1.0.0](NEXT_STEPS.md)
 
 Package vignettes offer fully worked examples and can be viewed with:
 
@@ -201,6 +203,6 @@ This project is licensed under the [MIT License](LICENSE).
 
 ## Contact
 Diogo Ribeiro
-ESMAD - Instituto Politécnico do Porto
+Faculty of Media Arts and Design, Technical University of Porto
 diogo.debastos.ribeiro@gmail.com | dfr@esmad.ipp.pt
 ORCID: https://orcid.org/0009-0001-2022-7072
