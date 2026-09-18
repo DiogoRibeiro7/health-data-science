@@ -44,6 +44,8 @@ All notable changes to this project will be documented in this file.
 - Added dedicated biomarker-analysis documentation.
 - Added explicit statistical-learning metadata and performance helpers for ranger, xgboost, and nnet models.
 - Added dedicated documentation for statistical-learning task, preprocessing, and performance contracts.
+- Added Bayesian posterior summaries, sampling diagnostics, posterior predictive draws, and tidy BMA coefficient summaries.
+- Added dedicated Bayesian-methods documentation covering sampling controls, diagnostics, and predictive checking.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -69,6 +71,10 @@ All notable changes to this project will be documented in this file.
 - Hardened `train_rf_missing()` with explicit task resolution, supported ranger missing-data modes, hyperparameter validation, and out-of-bag metadata.
 - Hardened `train_gbm()` with explicit regression/binary objectives, validated outcomes, controlled hyperparameters, and apparent training metrics.
 - Hardened `train_neural_net()` with explicit regression/binary outputs, optional predictor scaling, validated outcomes, and retained preprocessing metadata.
+- Hardened `run_mcmc()` with explicit chains, warmup, thinning, seed, NUTS adaptation, and tree-depth controls.
+- Fixed `bayesian_model_averaging()` to require/pass an explicit GLM family and added model-search/missingness controls.
+- Hardened `fit_hierarchical_bayes()` with explicit sampling controls, hierarchical-formula validation, and fitted-sample metadata.
+- Clarified posterior predictive checking by separating observed-data PPCs from new-data posterior predictive draws.
 
 ## [0.1.0]
 
