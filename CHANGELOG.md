@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file.
 - Reconciled the roadmap so completed survival, longitudinal, missing-data, and causal work is no longer listed as future work.
 - Fixed changed-file linting in CI so unrelated historical lint debt does not block new pull requests.
 - Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
+- Corrected IV over-identification diagnostics to use excluded-instrument rank conditional on included covariates.
 
 ### Added
 - Added `tidy_competing_risks()` for interpretable Fine-Gray coefficient tables with Wald confidence intervals.

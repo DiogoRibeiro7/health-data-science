@@ -106,10 +106,17 @@ fit_instrumental_variable <- function(
   iv_formula <- stats::as.formula(paste(quote_name(outcome), "~", structural_rhs, "|", instrument_rhs))
   iv_fit <- AER::ivreg(iv_formula, data = data, model = TRUE, x = TRUE, y = TRUE)
 
-  inst_matrix <- stats::model.matrix(stats::as.formula(paste("~", inst_rhs)), data = data)
-  if ("(Intercept)" %in% colnames(inst_matrix)) inst_matrix <- inst_matrix[, -1, drop = FALSE]
-  instrument_rank <- qr(inst_matrix)$rank
-  if (instrument_rank == 0L) stop("Excluded instruments have zero rank", call. = FALSE)
+  full_design <- stats::model.matrix(first_formula, data = data)
+  restricted_design <- stats::model.matrix(restricted_formula, data = data)
+  full_rank <- qr(full_design)$rank
+  restricted_rank <- qr(restricted_design)$rank
+  instrument_rank <- full_rank - restricted_rank
+  if (instrument_rank <= 0L) {
+    stop(
+      "Excluded instruments add no estimable rank conditional on covariates",
+      call. = FALSE
+    )
+  }
 
   overidentified <- instrument_rank > 1L
   sargan_statistic <- sargan_df <- sargan_p_value <- NA_real_

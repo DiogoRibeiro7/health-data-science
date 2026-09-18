@@ -16,10 +16,10 @@ For a single binary instrument and binary treatment, the fitted object marks the
 
 ## Overidentification
 
-When the excluded-instrument design matrix has rank greater than one, the package reports a Sargan statistic. This is an overidentification specification check under homoskedastic linear-IV assumptions. A non-significant Sargan test does not prove the exclusion restriction or instrument independence. A significant result indicates that the collection of instruments and structural assumptions is difficult to reconcile with the observed residual restrictions.
+When the excluded instruments add estimable rank greater than one after conditioning on included covariates, the package reports a Sargan statistic. This is an overidentification specification check under homoskedastic linear-IV assumptions. A non-significant Sargan test does not prove the exclusion restriction or instrument independence. A significant result indicates that the collection of instruments and structural assumptions is difficult to reconcile with the observed residual restrictions.
 
 ## Inference
 
 `tidy_instrumental_variable()` currently reports the conventional homoskedastic 2SLS covariance matrix supplied by `AER::ivreg`. Heteroskedasticity-robust, cluster-robust, and weak-instrument-robust inference are separate extensions and should not be inferred from the current Wald interval.
 
-`instrumental_variable_diagnostics()` returns first-stage strength statistics, the descriptive weak-instrument flag, excluded-instrument rank, and the overidentification diagnostic when available.
+`instrumental_variable_diagnostics()` returns first-stage strength statistics, the descriptive weak-instrument flag, the excluded-instrument rank conditional on included covariates, and the overidentification diagnostic when available.
