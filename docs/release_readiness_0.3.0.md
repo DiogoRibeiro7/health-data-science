@@ -17,6 +17,8 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 - Survival, recurrent-event, multi-state, longitudinal, missing-data sensitivity, propensity, doubly robust, IV, DiD, RD, clinical, biomarker, statistical-learning, Bayesian, and latent-model APIs added or hardened.
 - ATT doubly robust inference corrected to use the ratio-estimator influence function.
 - IV over-identification rank corrected to use incremental estimable rank conditional on included covariates.
+- RD sensitivity now selects the named robust bias-corrected inference row explicitly.
+- Fixed-bandwidth placebo RD windows that touch or cross the true cutoff are rejected.
 - CI runs changed-file linting rather than failing new pull requests on unrelated historical lint debt.
 - Current and previous R releases remain in the CI matrix.
 - The exported API contains no duplicate `NAMESPACE` entries.
@@ -24,21 +26,13 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 
 ## Blocking correctness audits
 
-### Regression-discontinuity result extraction
-
-The RD sensitivity helper currently extracts the final common row across `coef`, `se`, `pv`, and `ci`. Before release, this must be checked against the documented `rdrobust` result structure so the code explicitly selects robust bias-corrected inference rather than depending on row position.
-
-### RD placebo windows
-
-For an analyst-supplied fixed placebo bandwidth, a placebo window can currently overlap the true treatment cutoff. Before release, fixed-bandwidth placebo checks should reject windows that cross the true discontinuity, because such a placebo estimate can mechanically contain the true treatment jump.
-
 ## Release-engineering gates
 
 A 0.3.0 tag should be created only after all of the following are true:
 
 - [x] IV rank/over-identification audit completed and regression-tested.
-- [ ] RD robust-row extraction made explicit and regression-tested.
-- [ ] Fixed-bandwidth placebo windows cannot cross the true cutoff.
+- [x] RD robust-row extraction made explicit and regression-tested.
+- [x] Fixed-bandwidth placebo windows cannot cross the true cutoff.
 - [ ] `R CMD check --as-cran` is clean on the supported CI R versions.
 - [ ] Test coverage is at least 80%.
 - [ ] Container vulnerability scan passes.

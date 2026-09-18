@@ -4,22 +4,49 @@
 # ------------------------------------------------------------------------------
 
 .extract_rd_robust_row <- function(fit, cutoff, label = NULL) {
-  coef <- as.numeric(fit$coef)
-  se <- as.numeric(fit$se)
-  pv <- as.numeric(fit$pv)
+  required_row <- "Robust"
+  coef <- as.matrix(fit$coef)
+  se <- as.matrix(fit$se)
+  pv <- as.matrix(fit$pv)
   ci <- as.matrix(fit$ci)
-  if (length(coef) == 0L || length(se) == 0L || length(pv) == 0L || nrow(ci) == 0L) {
-    stop("The `rdrobust` result contains no extractable inference rows", call. = FALSE)
+
+  matrices <- list(coef = coef, se = se, pv = pv, ci = ci)
+  missing_row <- vapply(
+    matrices,
+    function(x) is.null(rownames(x)) || !required_row %in% rownames(x),
+    logical(1)
+  )
+  if (any(missing_row)) {
+    stop(
+      paste(
+        "The `rdrobust` result does not expose the named Robust inference row",
+        "in all required components"
+      ),
+      call. = FALSE
+    )
   }
-  index <- min(length(coef), length(se), length(pv), nrow(ci))
+
+  estimate <- unname(coef[required_row, 1L])
+  std_error <- unname(se[required_row, 1L])
+  p_value <- unname(pv[required_row, 1L])
+  conf_low <- unname(ci[required_row, 1L])
+  conf_high <- unname(ci[required_row, 2L])
+
+  values <- c(estimate, std_error, p_value, conf_low, conf_high)
+  if (any(!is.finite(values))) {
+    stop("The Robust `rdrobust` inference row contains non-finite values",
+         call. = FALSE)
+  }
+
   data.frame(
     label = if (is.null(label)) NA_character_ else as.character(label),
     cutoff = cutoff,
-    estimate = coef[index],
-    std_error = se[index],
-    p_value = pv[index],
-    conf_low = ci[index, 1],
-    conf_high = ci[index, 2],
+    estimate = estimate,
+    std_error = std_error,
+    p_value = p_value,
+    conf_low = conf_low,
+    conf_high = conf_high,
+    inference = "robust_bias_corrected",
     row.names = NULL,
     check.names = FALSE
   )
@@ -126,6 +153,17 @@ rd_placebo_cutoffs <- function(model, cutoffs, bandwidth = NULL) {
     if (!is.numeric(bandwidth) || length(bandwidth) != 1L ||
         !is.finite(bandwidth) || bandwidth <= 0) {
       stop("`bandwidth` must be NULL or one positive finite number", call. = FALSE)
+    }
+    true_cutoff <- model$metadata$cutoff
+    crosses_true_cutoff <- abs(cutoffs - true_cutoff) <= bandwidth
+    if (any(crosses_true_cutoff)) {
+      stop(
+        paste(
+          "Fixed placebo bandwidth windows cannot touch or cross the true",
+          "RD cutoff"
+        ),
+        call. = FALSE
+      )
     }
   }
 
