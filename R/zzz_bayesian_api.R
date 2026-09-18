@@ -171,8 +171,8 @@ run_mcmc <- function(
 #' @param data Data frame.
 #' @param family GLM family passed to `BMA::bic.glm(glm.family = ...)`.
 #' @param strict Whether to remove models having more probable submodels.
-#' @param OR Posterior-odds window used by BMA.
-#' @param maxCol Maximum number of predictors retained before BMA's preliminary
+#' @param odds_ratio Posterior-odds window used by BMA.
+#' @param max_col Maximum number of predictors retained before BMA's preliminary
 #'   reduction.
 #' @param nbest Maximum number of models retained by the search.
 #' @param na_action Missing-value policy: `"fail"` or `"omit"`.
@@ -183,8 +183,8 @@ bayesian_model_averaging <- function(
     data,
     family = stats::gaussian(),
     strict = FALSE,
-    OR = 20,
-    maxCol = 30,
+    odds_ratio = 20,
+    max_col = 30,
     nbest = 150,
     na_action = c("fail", "omit")) {
   na_action <- match.arg(na_action)
@@ -197,10 +197,10 @@ bayesian_model_averaging <- function(
   if (!is.logical(strict) || length(strict) != 1L || is.na(strict)) {
     stop("`strict` must be TRUE or FALSE", call. = FALSE)
   }
-  if (!is.numeric(OR) || length(OR) != 1L || !is.finite(OR) || OR <= 1) {
-    stop("`OR` must be a finite number greater than 1", call. = FALSE)
+  if (!is.numeric(odds_ratio) || length(odds_ratio) != 1L || !is.finite(odds_ratio) || odds_ratio <= 1) {
+    stop("`odds_ratio` must be a finite number greater than 1", call. = FALSE)
   }
-  maxCol <- .hds_bayes_positive_integer(maxCol, "maxCol")
+  max_col <- .hds_bayes_positive_integer(max_col, "max_col")
   nbest <- .hds_bayes_positive_integer(nbest, "nbest")
 
   ensure_packages("BMA")
@@ -209,8 +209,8 @@ bayesian_model_averaging <- function(
     data = prepared$data,
     glm.family = family,
     strict = strict,
-    OR = OR,
-    maxCol = maxCol,
+    OR = odds_ratio,
+    maxCol = max_col,
     nbest = nbest,
     na.action = stats::na.fail
   )
@@ -218,8 +218,8 @@ bayesian_model_averaging <- function(
     engine = "BMA::bic.glm",
     family = if (inherits(family, "family")) family$family else as.character(substitute(family)),
     strict = strict,
-    OR = OR,
-    maxCol = maxCol,
+    OR = odds_ratio,
+    maxCol = max_col,
     nbest = nbest,
     n = nrow(prepared$data),
     omitted_rows = prepared$omitted_rows
@@ -282,7 +282,7 @@ tidy_bayesian_model_average <- function(model) {
 #' @param seed Optional random seed.
 #' @param adapt_delta NUTS target acceptance probability.
 #' @param max_treedepth Maximum NUTS tree depth.
-#' @param QR Whether to use rstanarm's scaled QR decomposition.
+#' @param qr Whether to use rstanarm's scaled QR decomposition.
 #' @param na_action Missing-value policy.
 #' @param ... Additional prior or model arguments forwarded to
 #'   [rstanarm::stan_glmer].
@@ -299,7 +299,7 @@ fit_hierarchical_bayes <- function(
     seed = NULL,
     adapt_delta = 0.95,
     max_treedepth = 15,
-    QR = FALSE,
+    qr = FALSE,
     na_action = c("fail", "omit"),
     ...) {
   na_action <- match.arg(na_action)
@@ -323,8 +323,8 @@ fit_hierarchical_bayes <- function(
   seed <- .hds_bayes_seed(seed)
   adapt_delta <- .hds_bayes_probability(adapt_delta, "adapt_delta")
   max_treedepth <- .hds_bayes_positive_integer(max_treedepth, "max_treedepth")
-  if (!is.logical(QR) || length(QR) != 1L || is.na(QR)) {
-    stop("`QR` must be TRUE or FALSE", call. = FALSE)
+  if (!is.logical(qr) || length(qr) != 1L || is.na(qr)) {
+    stop("`qr` must be TRUE or FALSE", call. = FALSE)
   }
 
   ensure_packages("rstanarm")
@@ -339,7 +339,7 @@ fit_hierarchical_bayes <- function(
       chains = chains,
       cores = cores,
       adapt_delta = adapt_delta,
-      QR = QR,
+      QR = qr,
       refresh = 0,
       na.action = stats::na.fail,
       control = list(max_treedepth = max_treedepth)
@@ -359,7 +359,7 @@ fit_hierarchical_bayes <- function(
     seed = seed,
     adapt_delta = adapt_delta,
     max_treedepth = max_treedepth,
-    QR = QR,
+    qr = qr,
     n = nrow(prepared$data),
     omitted_rows = prepared$omitted_rows,
     formula = formula_text
