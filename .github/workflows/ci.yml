@@ -19,19 +19,10 @@ jobs:
           use-public-rspm: true
           r-version: release
 
-      - name: Parse changed R files
+      - name: Parse package R files
         shell: bash
         run: |
-          mapfile -t files < <(
-            git diff --name-only --diff-filter=ACMR \
-              "${{ github.event.pull_request.base.sha }}" \
-              "${{ github.sha }}" -- '*.R' '*.r'
-          )
-
-          if [ "${#files[@]}" -eq 0 ]; then
-            echo "No changed R files."
-            exit 0
-          fi
+          mapfile -t files < <(find R -type f \( -name '*.R' -o -name '*.r' \) | sort)
 
           printf '%s\n' "${files[@]}"
           Rscript - "${files[@]}" <<'RSCRIPT'

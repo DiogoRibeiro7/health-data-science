@@ -8,6 +8,8 @@ Description: Reproducible statistical and data-science tools for clinical,
     longitudinal, missing-data sensitivity, causal-inference, latent-variable,
     Bayesian, biomarker, prediction, and population-health workflows.
 License: MIT + file LICENSE
+Depends:
+    R (>= 4.1.0)
 Encoding: UTF-8
 LazyData: true
 Imports:
