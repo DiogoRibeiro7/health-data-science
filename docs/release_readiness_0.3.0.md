@@ -20,7 +20,7 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 - RD sensitivity now selects the named robust bias-corrected inference row explicitly.
 - Fixed-bandwidth placebo RD windows that touch or cross the true cutoff are rejected.
 - CI runs changed-file linting rather than failing new pull requests on unrelated historical lint debt.
-- Normal `main` CI builds, installs, and loads the package with only the four hard dependencies; the previous-R matrix, full optional dependencies, tests/examples/vignettes, coverage, and security scan run in the separate Release Gate workflow.
+- Normal `main` CI builds, installs, and loads the package with only the four hard dependencies. The Release Gate runs core build/install/load compatibility on current and previous R, then performs the expensive full optional-dependency check, coverage, and lint once on current R before the container security scan.
 - The exported API contains no duplicate `NAMESPACE` entries.
 - Documentation index and public API inventory added.
 - Removed the stale incomplete `renv` snapshot and unified local, CI, and container dependency installation around `DESCRIPTION`.
