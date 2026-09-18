@@ -23,7 +23,7 @@ jobs:
         shell: bash
         run: |
           mapfile -t files < <(
-            git diff --name-only \
+            git diff --name-only --diff-filter=ACMR \
               "${{ github.event.pull_request.base.sha }}" \
               "${{ github.sha }}" -- '*.R' '*.r'
           )
