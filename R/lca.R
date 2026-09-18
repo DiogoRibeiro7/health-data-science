@@ -63,7 +63,8 @@ read_lca_input <- function(path, cache = TRUE) {
 #'
 #' @return Tibble with the subset of variables used in the latent class model.
 select_lca_variables <- function(df) {
-  df %>% dplyr::select(
+  dplyr::select(
+    df,
     PUF_CASE_ID, optcare, SEX, facility, DX_RX_STARTED_DAYS, CROWFLY,
     CDCC_TOTAL_BEST, race3, hispanic3, urbandwell, age4, SES, insurancetype
   )
@@ -181,14 +182,17 @@ fit_lca_model <- function(df_full, df_subset, cfg) {
 
   fit_once <- function(seed) {
     set.seed(seed)
-    poLCA(eff, df_full,
-          nclass = params$nclass,
-          maxiter = params$maxiter,
-          tol = params$tol,
-          na.rm = TRUE,
-          nrep = 1,
-          verbose = FALSE,
-          calc.se = TRUE)
+    poLCA::poLCA(
+      eff,
+      df_full,
+      nclass = params$nclass,
+      maxiter = params$maxiter,
+      tol = params$tol,
+      na.rm = TRUE,
+      nrep = 1,
+      verbose = FALSE,
+      calc.se = TRUE
+    )
   }
 
   attempt_fit <- function() {
@@ -242,8 +246,12 @@ summarize_lca <- function(lc_model) {
   idx <- seq_along(class)
   memclass.prob <- prob[cbind(idx, class)]
   lcaprob <- data.frame(class, memclass.prob)
-  mem.lcaplot <- ggplot(lcaprob, aes(x = factor(class), y = memclass.prob)) +
-    geom_boxplot() + ggtitle("LCA Membership Probability")
+  mem.lcaplot <- ggplot2::ggplot(
+    lcaprob,
+    ggplot2::aes(x = factor(class), y = memclass.prob)
+  ) +
+    ggplot2::geom_boxplot() +
+    ggplot2::ggtitle("LCA Membership Probability")
   print(mem.lcaplot)
   class
 }
