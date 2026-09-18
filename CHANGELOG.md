@@ -11,6 +11,9 @@ All notable changes to this project will be documented in this file.
 - Fixed changed-file linting in CI so unrelated historical lint debt does not block new pull requests.
 - Split normal CI from the heavy release gate so old-R compatibility, full optional dependencies, coverage, and security scans do not run after every merge.
 - Removed the stale incomplete `renv` snapshot and made `DESCRIPTION` the single dependency source for local setup, CI, and container builds.
+- Reduced hard package dependencies from 53 to 4 and moved method-specific, visualization, database, spatial, reporting, and ML engines to `Suggests`.
+- Made optional dependency checks side-effect free: package functions no longer install or attach packages automatically.
+- Changed normal `main` CI to a core build/install/load smoke test; the full optional surface remains covered by the Release Gate.
 - Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
 - Corrected IV over-identification diagnostics to use excluded-instrument rank conditional on included covariates.
 - Made RD sensitivity extraction explicitly select the named `Robust` rdrobust inference row.
