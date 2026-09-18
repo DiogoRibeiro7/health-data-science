@@ -1,8 +1,6 @@
 ^\.github$
 ^scripts$
 ^data$
-^renv$
-^renv\.lock$
 ^NEXT_STEPS\.md$
 ^CODE_OF_CONDUCT\.md$
 ^CONTRIBUTING\.md$
