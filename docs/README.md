@@ -32,6 +32,7 @@ details, and release information live.
 ## Engineering and operations
 
 - [Developer guide](developer_guide.md)
+- [Dependency policy](dependencies.md)
 - [Database and ETL](database_etl.md)
 - [Reporting](reporting.md)
 - [Performance](performance.md)

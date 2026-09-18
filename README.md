@@ -161,8 +161,10 @@ For development work, system dependencies, synthetic example data, and the
 repository setup workflow, start with the
 [Quickstart Guide](docs/quickstart.md).
 
-Package dependencies are declared in `DESCRIPTION`. Local setup, CI, and
-container builds all install from that same dependency contract.
+A normal package install keeps the dependency surface deliberately small.
+Method-specific engines are optional and live in `Suggests`. To install the
+entire repository toolchain, run `bash scripts/setup.sh`. The detailed rules
+are documented in the [dependency policy](docs/dependencies.md).
 
 ## Documentation
 

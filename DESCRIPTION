@@ -11,6 +11,13 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
 Imports:
+    logger,
+    yaml,
+    uuid,
+    jsonlite
+Suggests:
+    testthat (>= 3.0.0),
+    roxygen2,
     ggplot2,
     plotly,
     leaflet,
@@ -37,7 +44,6 @@ Imports:
     shinyWidgets,
     plumber,
     httr,
-    logger,
     progress,
     future,
     future.apply,
@@ -55,16 +61,10 @@ Imports:
     openssl,
     jose,
     filelock,
-    yaml,
-    uuid,
-    jsonlite,
     sf,
     spdep,
     survey,
-    deSolve
-Suggests:
-    testthat (>= 3.0.0),
-    roxygen2,
+    deSolve,
     RPostgres,
     RMariaDB,
     odbc,
@@ -88,6 +88,7 @@ Suggests:
     bayesplot,
     otel,
     lme4,
-    did
+    did,
+    profvis
 Config/testthat/edition: 3
 VignetteBuilder: knitr
