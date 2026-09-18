@@ -202,7 +202,7 @@ the statistical core.
 
 Operational material — API deployment, monitoring, database/ETL workflows,
 security, and backup — is documented under
-[Package use and operations](docs/README.md#package-use-and-operations).
+[Engineering and operations](docs/README.md#engineering-and-operations).
 
 ## Development and releases
 
