@@ -136,7 +136,7 @@ verify_api_key <- function(key, required_role = NULL, store = "config/api_keys.y
   dat <- yaml::read_yaml(store)$keys
   idx <- which(vapply(dat, function(x) {
     if (!is.null(x$hash)) {
-      parts <- strsplit(x$hash, "\$", fixed = TRUE)[[1]]
+      parts <- strsplit(x$hash, "$", fixed = TRUE)[[1]]
       if (length(parts) != 2) return(FALSE)
       salt <- parts[1]; hash <- parts[2]
       digest::digest(paste0(salt, key), algo = "sha256") == hash
