@@ -1,12 +1,12 @@
 Package: healthdatascience
 Title: Health Data Science Toolkit
-Version: 0.2.0
+Version: 0.3.0
 Authors@R:
     person(given = "Diogo", family = "Ribeiro", email = "dfr@esmad.ipp.pt", role = c("aut", "cre"), comment = c(ORCID = "0009-0001-2022-7072"))
 Description: Reproducible statistical and data-science tools for clinical,
-    epidemiological, and real-world health data, including data validation,
-    latent-class modelling, regression, survival analysis, observational-study
-    methods, population-health analysis, reporting, and operational workflows.
+    epidemiological, and real-world health data, including validated survival,
+    longitudinal, missing-data sensitivity, causal-inference, latent-variable,
+    Bayesian, biomarker, prediction, and population-health workflows.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
