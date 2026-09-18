@@ -77,3 +77,32 @@ test_that("overidentified models report a Sargan diagnostic", {
   expect_true(is.finite(diag$sargan_statistic))
   expect_true(is.finite(diag$sargan_p_value))
 })
+
+
+test_that("excluded-instrument rank is conditional on included covariates", {
+  skip_if_not_installed("AER")
+
+  set.seed(123)
+  n <- 800
+  x <- rnorm(n)
+  z1 <- rnorm(n)
+  z2 <- x
+  u <- rnorm(n)
+
+  d <- 1.2 * z1 + 0.8 * x + u + rnorm(n, sd = 0.5)
+  y <- 1.5 * d + 0.5 * x + u + rnorm(n)
+  df <- data.frame(y = y, d = d, z1 = z1, z2 = z2, x = x)
+
+  fit <- fit_instrumental_variable(
+    df,
+    outcome = "y",
+    treatment = "d",
+    instruments = c("z1", "z2"),
+    covariates = "x"
+  )
+  diag <- instrumental_variable_diagnostics(fit)
+
+  expect_equal(diag$excluded_instrument_rank, 1)
+  expect_false(diag$overidentified)
+  expect_true(is.na(diag$sargan_df))
+})
