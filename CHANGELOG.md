@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+### Release preparation
+- Set package metadata to version 0.3.0 for release-candidate validation.
+- Added a public API inventory and a 0.3.0 release-readiness checklist.
+- Reconciled the roadmap so completed survival, longitudinal, missing-data, and causal work is no longer listed as future work.
+- Fixed changed-file linting in CI so unrelated historical lint debt does not block new pull requests.
+- Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
+
 ### Added
 - Added `tidy_competing_risks()` for interpretable Fine-Gray coefficient tables with Wald confidence intervals.
 - Added recurrent-event Cox modelling with Andersen-Gill and PWP total-time risk-set definitions.

@@ -57,6 +57,24 @@ test_that("ATT estimator targets the treated population", {
   expect_equal(result$estimand, "ATT")
   expect_lt(abs(result$estimate - truth_att), 0.15)
   expect_equal(result$target_fraction, mean(a), tolerance = 1e-12)
+
+  analysis_data <- design$data
+  treatment <- design$treatment
+  propensity <- design$propensity_score
+  treated_model <- stats::lm(y ~ x, data = analysis_data[treatment == 1L, ])
+  control_model <- stats::lm(y ~ x, data = analysis_data[treatment == 0L, ])
+  mu0 <- as.numeric(stats::predict(control_model, newdata = analysis_data))
+
+  numerator <-
+    treatment * (analysis_data$y - mu0) -
+    (1 - treatment) * propensity / (1 - propensity) *
+      (analysis_data$y - mu0)
+  treated_fraction <- mean(treatment)
+  estimate <- mean(numerator) / treated_fraction
+  influence <- (numerator - estimate * treatment) / treated_fraction
+  expected_se <- stats::sd(influence) / sqrt(length(influence))
+
+  expect_equal(result$std_error, expected_se, tolerance = 1e-12)
 })
 
 test_that("outcome-model covariates can differ from propensity covariates", {

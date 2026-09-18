@@ -151,9 +151,13 @@ estimate_doubly_robust <- function(
     treated_component <- a * (y - mu0)
     control_augmentation <-
       (1 - a) * p / (1 - p) * (y - mu0)
-    score <- (treated_component - control_augmentation) / treated_fraction
-    estimate <- mean(score)
-    influence <- score - estimate
+    estimating_numerator <- treated_component - control_augmentation
+    estimate <- mean(estimating_numerator) / treated_fraction
+
+    # Ratio-estimator influence function for theta = E[g(O)] / E[A]:
+    # IF(O) = {g(O) - theta A} / E[A].
+    influence <-
+      (estimating_numerator - estimate * a) / treated_fraction
     target_fraction <- treated_fraction
   }
 
