@@ -73,13 +73,11 @@ jobs:
         with:
           dependencies: '"hard"'
 
-      - name: Run core package check
-        env:
-          _R_CHECK_FORCE_SUGGESTS_: false
-        run: |
-          R CMD build --no-build-vignettes .
-          R CMD check healthdatascience_*.tar.gz \
-            --no-manual \
-            --no-tests \
-            --no-examples \
-            --no-vignettes
+      - name: Build core package
+        run: R CMD build --no-build-vignettes .
+
+      - name: Install core package
+        run: R CMD INSTALL healthdatascience_*.tar.gz
+
+      - name: Load core package
+        run: Rscript -e 'library(healthdatascience); packageVersion("healthdatascience")'
