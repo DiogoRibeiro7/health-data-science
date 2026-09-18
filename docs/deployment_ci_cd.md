@@ -29,6 +29,6 @@ This package includes a production-ready pipeline and infrastructure templates.
 - Trivy scanning in CI guards against vulnerabilities
 
 ## Developer workflow
-- `scripts/setup_dev.sh` bootstraps a local environment with `renv` and pre-commit hooks
+- `scripts/setup_dev.sh` installs dependencies from `DESCRIPTION` and configures pre-commit hooks
 - All environments share the same configuration files for parity between development, staging,
   and production
