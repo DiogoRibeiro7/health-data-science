@@ -46,6 +46,7 @@ All notable changes to this project will be documented in this file.
 - Added dedicated documentation for statistical-learning task, preprocessing, and performance contracts.
 - Added Bayesian posterior summaries, sampling diagnostics, posterior predictive draws, and tidy BMA coefficient summaries.
 - Added dedicated Bayesian-methods documentation covering sampling controls, diagnostics, and predictive checking.
+- Added latent-model metadata and dedicated documentation for LMest, FlexMix, BayesLCA, and randomLCA wrappers.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -75,6 +76,10 @@ All notable changes to this project will be documented in this file.
 - Fixed `bayesian_model_averaging()` to require/pass an explicit GLM family and added model-search/missingness controls.
 - Hardened `fit_hierarchical_bayes()` with explicit sampling controls, hierarchical-formula validation, and fitted-sample metadata.
 - Clarified posterior predictive checking by separating observed-data PPCs from new-data posterior predictive draws.
+- Fixed `fit_latent_transition()` to use the current `LMest::lmest()` API and added explicit long-format indexing plus a legacy wide-data compatibility path.
+- Fixed `fit_bayesian_lca()` to pass the latent-class count through BayesLCA's `G` argument rather than the obsolete `classes` name.
+- Fixed `fit_multilevel_lca()` to pass `nclass` by name instead of accidentally supplying the class count as randomLCA's positional `freq` argument.
+- Hardened `fit_mixture_covariates()` and the latent-class wrappers with explicit validation, missingness policies, seeds, and fitted-model metadata.
 
 ## [0.1.0]
 
