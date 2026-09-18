@@ -118,7 +118,7 @@ monitor_resources <- function(metrics) {
 
 #' Start a trace span
 #'
-#' Utilises the `opentelemetry` package when available to start a new span for
+#' Utilises the `otel` package when available to start a new span for
 #' distributed tracing. When the package is absent, returns `NULL` allowing the
 #' caller to proceed without tracing.
 #'
@@ -127,11 +127,8 @@ monitor_resources <- function(metrics) {
 #' @return Span object or `NULL` if tracing is unavailable.
 #' @export
 start_trace <- function(name) {
-  if (requireNamespace("opentelemetry", quietly = TRUE)) {
-    tracer <- opentelemetry::tracer()
-    span <- opentelemetry::start_span(tracer, name)
-    opentelemetry::set_span(span)
-    return(span)
+  if (requireNamespace("otel", quietly = TRUE)) {
+    return(otel::start_span(name = name))
   }
   NULL
 }
@@ -147,9 +144,11 @@ start_trace <- function(name) {
 #' @return Invisible `NULL`.
 #' @export
 end_trace <- function(span, error = NULL) {
-  if (!is.null(span) && requireNamespace("opentelemetry", quietly = TRUE)) {
-    if (!is.null(error)) opentelemetry::set_status(span, "error", error)
-    opentelemetry::end_span(span)
+  if (!is.null(span) && requireNamespace("otel", quietly = TRUE)) {
+    if (!is.null(error) && is.function(span$set_status)) {
+      span$set_status("error", description = error)
+    }
+    otel::end_span(span)
   }
   invisible(NULL)
 }
