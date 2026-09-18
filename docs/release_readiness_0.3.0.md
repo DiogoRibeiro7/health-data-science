@@ -47,6 +47,7 @@ A 0.3.0 tag should be created only after all of the following are true:
 - [ ] Container vulnerability scan passes.
 - [ ] Documentation links in `README.md` and `docs/README.md` are valid.
 - [ ] `DESCRIPTION`, `NAMESPACE`, `CHANGELOG.md`, and the API inventory agree on the release surface.
+- [ ] `renv.lock` is synchronized with the declared package dependencies; the current lockfile is incomplete and must not be treated as a reproducible release snapshot.
 - [ ] No deprecated causal wrapper is removed before the documented major-release migration point.
 
 ## Release policy
