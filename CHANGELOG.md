@@ -42,6 +42,8 @@ All notable changes to this project will be documented in this file.
 - Added dedicated clinical-analytics documentation covering pharmacovigilance and prediction-model interpretation.
 - Added explicit pairwise biomarker analysis with comparison metadata, multiplicity control, fold-change thresholds, tidy results, and discovery summaries.
 - Added dedicated biomarker-analysis documentation.
+- Added explicit statistical-learning metadata and performance helpers for ranger, xgboost, and nnet models.
+- Added dedicated documentation for statistical-learning task, preprocessing, and performance contracts.
 
 ### Changed
 - Re-baselined package metadata for the 0.2.0 development line.
@@ -64,6 +66,9 @@ All notable changes to this project will be documented in this file.
 - Hardened `detect_pharmacovigilance()` with explicit 2 x 2 count validation while preserving its scalar PRR return type.
 - Reimplemented `develop_clinical_prediction_rule()` on top of the structured prediction-rule API while preserving its historical coefficient-vector return type.
 - Hardened biomarker discovery with explicit feature/sample validation and a structured pairwise limma workflow while preserving the legacy `topTable()` helper.
+- Hardened `train_rf_missing()` with explicit task resolution, supported ranger missing-data modes, hyperparameter validation, and out-of-bag metadata.
+- Hardened `train_gbm()` with explicit regression/binary objectives, validated outcomes, controlled hyperparameters, and apparent training metrics.
+- Hardened `train_neural_net()` with explicit regression/binary outputs, optional predictor scaling, validated outcomes, and retained preprocessing metadata.
 
 ## [0.1.0]
 
