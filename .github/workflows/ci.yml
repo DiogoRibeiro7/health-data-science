@@ -45,7 +45,7 @@ jobs:
           else
             from_ref="${{ github.event.before }}"
           fi
-          pre-commit run --from-ref "$from_ref" --to-ref "${{ github.sha }"
+          pre-commit run --from-ref "$from_ref" --to-ref "${{ github.sha }}"
 
       - name: Run R CMD check
         run: |
