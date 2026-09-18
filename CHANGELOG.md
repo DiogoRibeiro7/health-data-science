@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 - Reduced hard package dependencies from 53 to 4 and moved method-specific, visualization, database, spatial, reporting, and ML engines to `Suggests`.
 - Made optional dependency checks side-effect free: package functions no longer install or attach packages automatically.
 - Changed normal `main` CI to a core build/install/load smoke test; the full optional surface remains covered by the Release Gate.
+- Streamlined the Release Gate so current/previous R compatibility uses only hard dependencies while the expensive full optional-dependency validation runs once on current R.
 - Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
 - Corrected IV over-identification diagnostics to use excluded-instrument rank conditional on included covariates.
 - Made RD sensitivity extraction explicitly select the named `Robust` rdrobust inference row.
