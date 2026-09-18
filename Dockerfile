@@ -5,7 +5,7 @@ RUN apt-get update && apt-get install -y     libcurl4-openssl-dev libssl-dev lib
 WORKDIR /build
 COPY . /build
 
-RUN Rscript scripts/install_r_deps.R --test
+RUN Rscript scripts/install_r_deps.R --all --test
 
 RUN R CMD build . &&     R CMD check --no-manual --as-cran *.tar.gz
 
