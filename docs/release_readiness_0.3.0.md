@@ -20,7 +20,7 @@ The package metadata has moved to 0.3.0 and the main statistical API audit is su
 - RD sensitivity now selects the named robust bias-corrected inference row explicitly.
 - Fixed-bandwidth placebo RD windows that touch or cross the true cutoff are rejected.
 - CI runs changed-file linting rather than failing new pull requests on unrelated historical lint debt.
-- Current and previous R releases remain in the CI matrix.
+- Normal `main` CI runs one current-R hard-dependency package check; the previous-R matrix, full optional dependencies, coverage, and security scan run in the separate Release Gate workflow.
 - The exported API contains no duplicate `NAMESPACE` entries.
 - Documentation index and public API inventory added.
 
@@ -33,9 +33,9 @@ A 0.3.0 tag should be created only after all of the following are true:
 - [x] IV rank/over-identification audit completed and regression-tested.
 - [x] RD robust-row extraction made explicit and regression-tested.
 - [x] Fixed-bandwidth placebo windows cannot cross the true cutoff.
-- [ ] `R CMD check --as-cran` is clean on the supported CI R versions.
-- [ ] Test coverage is at least 80%.
-- [ ] Container vulnerability scan passes.
+- [ ] Release Gate `R CMD check --as-cran` is clean on the supported R versions.
+- [ ] Release Gate test coverage is at least 80%.
+- [ ] Release Gate container vulnerability scan passes.
 - [ ] Documentation links in `README.md` and `docs/README.md` are valid.
 - [ ] `DESCRIPTION`, `NAMESPACE`, `CHANGELOG.md`, and the API inventory agree on the release surface.
 - [ ] `renv.lock` is synchronized with the declared package dependencies; the current lockfile is incomplete and must not be treated as a reproducible release snapshot.
