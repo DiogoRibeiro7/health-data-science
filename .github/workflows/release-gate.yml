@@ -42,6 +42,9 @@ jobs:
       - name: Run linters
         run: pre-commit run --all-files
 
+      - name: Validate release surface
+        run: Rscript scripts/check_release_surface.R
+
       - name: Run R CMD check
         env:
           _R_CHECK_FORCE_SUGGESTS_: false
