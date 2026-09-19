@@ -1,7 +1,10 @@
 args <- commandArgs(trailingOnly = TRUE)
 
 profile_path <- if (length(args) > 0L) args[[1L]] else "scripts/release_test_packages.txt"
-repos <- "https://cloud.r-project.org"
+repos <- getOption("repos")
+if (is.null(repos) || identical(unname(repos[["CRAN"]]), "@CRAN@")) {
+  repos <- c(CRAN = "https://cloud.r-project.org")
+}
 
 if (!file.exists(profile_path)) {
   stop("Release test profile not found: ", profile_path, call. = FALSE)
