@@ -17,7 +17,7 @@ test_that("scripts expose version and dry-run options", {
 })
 
 test_that("analysis scripts execute", {
-  pkgs <- c("optparse", "poLCA", "ggplot2", "aod", "survival", "survminer", "ranger", "ggfortify")
+  pkgs <- c("optparse", "poLCA", "dplyr", "ggplot2", "progress", "readr")
   for (p in pkgs) skip_if_not_installed(p)
   run(file.path("scripts", "generate_sample_data.R"))
   run(file.path("scripts", "ncdb_LCA.R"), "--input", "data/puf_early.csv", "--output", "data/lca_earlypuf.RData", "--config", "testing")
