@@ -18,6 +18,7 @@ project_root <- dirname(script_dir)
 source(file.path(project_root, "R", "utils.R"))
 source(file.path(project_root, "R", "lca.R"))
 source(file.path(project_root, "R", "logging.R"))
+source(file.path(project_root, "R", "config.R"))
 init_logging()
 
 set.seed(123)
@@ -70,8 +71,7 @@ if (opts$verbose) verbose <- TRUE
 cfg <- load_config(opts$config, project_root)
 
 if (!opts$dry_run) {
-  pkgs <- c("reshape2", "plyr", "dplyr", "poLCA",
-            "ggplot2", "ggparallel", "igraph", "tidyr", "knitr", "progress")
+  pkgs <- c("dplyr", "poLCA", "ggplot2", "progress", "readr")
   tryCatch(ensure_packages(pkgs), error = function(e) {
     log_error(paste("Package setup failed:", e$message), component = "script")
     quit(status = 1)
