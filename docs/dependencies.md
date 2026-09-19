@@ -75,3 +75,19 @@ When adding a package dependency:
 6. update tests and method documentation for the feature that requires it.
 
 The authoritative dependency declaration is `DESCRIPTION`.
+
+
+## Release test profile
+
+The generic Release Gate does not install every package in `Suggests`.
+Instead, `scripts/release_test_packages.txt` lists the optional packages
+actually exercised by the package tests, vignettes, reporting paths, and
+statistical workflows used in generic CI.
+
+This avoids making the release runner depend on external infrastructure such as
+Oracle client libraries solely because an integration is supported by the
+package.
+
+Environment-specific integrations remain declared in `Suggests` and should be
+validated in their native environments. The release profile is checked against
+`DESCRIPTION` so it cannot become a second undeclared dependency manifest.
