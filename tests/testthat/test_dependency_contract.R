@@ -29,3 +29,12 @@ test_that("DESCRIPTION keeps the hard dependency surface small", {
 
   expect_setequal(imports, c("logger", "yaml", "uuid", "jsonlite"))
 })
+
+
+test_that("script CLI dependency is declared", {
+  desc <- read.dcf("DESCRIPTION")
+  suggests <- trimws(strsplit(desc[1, "Suggests"], ",", fixed = TRUE)[[1]])
+  suggests <- sub("[[:space:]]*\\(.*\\)$", "", suggests)
+
+  expect_true("optparse" %in% suggests)
+})

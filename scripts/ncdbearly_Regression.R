@@ -17,10 +17,11 @@ project_root <- dirname(script_dir)
 source(file.path(project_root, "R", "utils.R"))
 source(file.path(project_root, "R", "regression.R"))
 source(file.path(project_root, "R", "logging.R"))
+source(file.path(project_root, "R", "config.R"))
 init_logging()
 
 # Verify R version for compatibility
-tryCatch(check_r_version("4.0.0"), error = function(e) {
+tryCatch(check_r_version("4.1.0"), error = function(e) {
   log_error(e$message, component = "script")
   quit(status = 1)
 })
@@ -64,9 +65,7 @@ if (opts$verbose) verbose <- TRUE
 cfg <- load_config(opts$config, project_root)
 
 if (!opts$dry_run) {
-  pkgs <- c("aod", "survival", "survminer", "ranger", "ggfortify",
-            "ggplot2", "progress")
-  tryCatch(ensure_packages(pkgs), error = function(e) {
+  tryCatch(ensure_packages("progress"), error = function(e) {
     log_error(paste("Package setup failed:", e$message), component = "script")
     quit(status = 1)
   })

@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file.
 - Changed normal `main` CI to a core build/install/load smoke test; the full optional surface remains covered by the Release Gate.
 - Streamlined the Release Gate so current/previous R compatibility uses only hard dependencies while the expensive full optional-dependency validation runs once on current R.
 - Replaced the stale external Prometheus R-package dependency with an internal metric registry and Prometheus-compatible text renderer.
+- Fixed standalone analysis scripts to source configuration explicitly, declare `optparse`, and check only the packages they actually use.
 - Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
 - Corrected IV over-identification diagnostics to use excluded-instrument rank conditional on included covariates.
 - Made RD sensitivity extraction explicitly select the named `Robust` rdrobust inference row.
