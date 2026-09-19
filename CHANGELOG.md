@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file.
 - Made optional dependency checks side-effect free: package functions no longer install or attach packages automatically.
 - Changed normal `main` CI to a core build/install/load smoke test; the full optional surface remains covered by the Release Gate.
 - Streamlined the Release Gate so current/previous R compatibility uses only hard dependencies while the expensive full optional-dependency validation runs once on current R.
+- Added a curated release test dependency profile so generic CI installs the optional packages exercised by tests and vignettes without requiring environment-specific integrations such as Oracle.
 - Replaced the stale external Prometheus R-package dependency with an internal metric registry and Prometheus-compatible text renderer.
 - Fixed standalone analysis scripts to source configuration explicitly, declare `optparse`, and check only the packages they actually use.
 - Corrected the ATT doubly robust standard error to use the ratio-estimator influence function.
