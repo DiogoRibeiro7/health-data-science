@@ -24,7 +24,7 @@ init_logging()
 set.seed(123)
 
 # Verify R version for compatibility
-tryCatch(check_r_version("4.0.0"), error = function(e) {
+tryCatch(check_r_version("4.1.0"), error = function(e) {
   log_error(e$message, component = "script")
   quit(status = 1)
 })
