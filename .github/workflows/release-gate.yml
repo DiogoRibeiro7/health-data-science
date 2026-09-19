@@ -95,7 +95,7 @@ jobs:
       - name: Build Docker image
         run: docker build -t health-data-science:latest .
 
-      - uses: aquasecurity/trivy-action@v0.13.0
+      - uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: health-data-science:latest
           format: table
