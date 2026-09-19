@@ -54,12 +54,12 @@ jobs:
 
       - uses: r-lib/actions/setup-r-dependencies@v2
         with:
-          dependencies: '"all"'
-          extra-packages: |
-            any::testthat
-            any::lintr
-            any::covr
-          needs: check
+          dependencies: '"hard"'
+
+      - name: Install release test profile
+        run: |
+          Rscript -e 'install.packages("remotes")'
+          Rscript scripts/install_release_test_deps.R
 
       - name: Install pre-commit
         run: python -m pip install pre-commit

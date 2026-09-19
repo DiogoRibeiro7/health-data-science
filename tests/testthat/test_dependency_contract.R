@@ -38,3 +38,27 @@ test_that("script CLI dependency is declared", {
 
   expect_true("optparse" %in% suggests)
 })
+
+
+test_that("release test profile contains only declared packages", {
+  desc <- read.dcf("DESCRIPTION")
+
+  parse_field <- function(field) {
+    value <- desc[1, field]
+    if (is.na(value) || !nzchar(value)) return(character())
+    values <- trimws(strsplit(value, ",", fixed = TRUE)[[1]])
+    sub("[[:space:]]*\\(.*\\)$", "", values)
+  }
+
+  declared <- unique(c(
+    parse_field("Imports"),
+    parse_field("Suggests"),
+    parse_field("Depends")
+  ))
+  declared <- setdiff(declared, c("R", ""))
+
+  lines <- trimws(readLines("scripts/release_test_packages.txt", warn = FALSE))
+  profile <- lines[nzchar(lines) & !startsWith(lines, "#")]
+
+  expect_length(setdiff(profile, declared), 0)
+})

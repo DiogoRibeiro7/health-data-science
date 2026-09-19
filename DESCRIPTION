@@ -20,6 +20,8 @@ Imports:
 Suggests:
     testthat (>= 3.0.0),
     roxygen2,
+    lintr,
+    covr,
     optparse,
     ggplot2,
     plotly,
